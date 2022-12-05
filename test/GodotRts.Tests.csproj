@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <RootNamespace>GodotTemplate.Tests</RootNamespace>
+    <RootNamespace>GodotRts.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NUnit" Version="3.12.0" />
@@ -9,6 +9,6 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\GodotTemplate.csproj" />
+    <ProjectReference Include="..\src\GodotRts.csproj" />
   </ItemGroup>
 </Project>

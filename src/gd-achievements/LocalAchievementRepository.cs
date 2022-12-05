@@ -4,7 +4,7 @@ using System.Linq;
 using Godot;
 using Newtonsoft.Json;
 
-namespace GodotTemplate.Achievements
+namespace GodotRts.Achievements
 {
     public class LocalAchievementRepository : IAchievementRepository
     {

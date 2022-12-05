@@ -1,4 +1,4 @@
-namespace GodotTemplate.Presentation.Utils
+namespace GodotRts.Presentation.Utils
 {
     public class CommonSignals
     {

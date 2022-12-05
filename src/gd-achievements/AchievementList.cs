@@ -1,6 +1,6 @@
 using Godot;
 using GodotAnalysers;
-using GodotTemplate.Achievements;
+using GodotRts.Achievements;
 
 [SceneReference("AchievementList.tscn")]
 public partial class AchievementList

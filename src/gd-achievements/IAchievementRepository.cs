@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GodotTemplate.Achievements
+namespace GodotRts.Achievements
 {
     public interface IAchievementRepository
     {

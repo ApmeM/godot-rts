@@ -12,7 +12,7 @@ A template repository to create godot project with the following features:
 
 1. Clone repository from template
 
-Replace all occurances of "godotTemplate" to your name
+Replace all occurances of "godotRts" to your name
 
 2. Create keystores for android deployment
 

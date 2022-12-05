@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace GodotTemplate.Presentation.Utils
+namespace GodotRts.Presentation.Utils
 {
     public static class NodeExt
     {

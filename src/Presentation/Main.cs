@@ -1,6 +1,6 @@
 using Godot;
 using GodotAnalysers;
-using GodotTemplate.Achievements;
+using GodotRts.Achievements;
 
 [SceneReference("Main.tscn")]
 public partial class Main

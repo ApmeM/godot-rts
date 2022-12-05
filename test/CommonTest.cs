@@ -1,4 +1,4 @@
-﻿namespace GodotTemplate.Tests
+﻿namespace GodotRts.Tests
 {
     using NUnit.Framework;
 
