@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://gd-minimap/Minimap.cs" type="Script" id=3]
+
+[node name="Minimap" type="MarginContainer"]
+margin_right = 150.0
+margin_bottom = 150.0
+script = ExtResource( 3 )
+
+[node name="Field" type="Control" parent="."]
+margin_right = 150.0
+margin_bottom = 150.0
+
+[node name="YSort" type="YSort" parent="Field"]
+
+[node name="Marker" type="Sprite" parent="Field/YSort"]

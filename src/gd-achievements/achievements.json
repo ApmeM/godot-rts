@@ -1,0 +1,7 @@
+{
+  "MyFirstAchievement": {
+    "name": "First chievement",
+    "description": "Congratulations! You unlock your first achievement",
+    "icon_path": "res://gd-achievements/resources/achievement_locked.png"
+  }
+}
