@@ -1,7 +1,9 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://Presentation/Main.cs" type="Script" id=1]
+[ext_resource path="res://Presentation/Person.tscn" type="PackedScene" id=2]
 [ext_resource path="res://gd-minimap/Minimap.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Presentation/Well.tscn" type="PackedScene" id=4]
 [ext_resource path="res://gd-achievements/AchievementNotifications.tscn" type="PackedScene" id=6]
 
 [node name="Main" type="Node"]
@@ -24,3 +26,25 @@ position = Vector2( 238, 5 )
 mode = 1
 cell_size = Vector2( 16, 16 )
 format = 1
+
+[node name="YSort" type="YSort" parent="."]
+
+[node name="Person3" parent="YSort" instance=ExtResource( 2 )]
+position = Vector2( 195, 172 )
+TileMapReference = NodePath("../../TileMap")
+MaxThristLevel = 100.0
+ThristSpeed = 3.0
+ThristThreshold = 50.0
+
+[node name="Person2" parent="YSort" instance=ExtResource( 2 )]
+position = Vector2( 213, 171 )
+TileMapReference = NodePath("../../TileMap")
+MaxThristLevel = 100.0
+ThristSpeed = 3.0
+ThristThreshold = 50.0
+
+[node name="Well" parent="YSort" instance=ExtResource( 4 )]
+position = Vector2( 201, 277 )
+TileMapReference = NodePath("../../TileMap")
+MaxAmount = 100.0
+Regeneration = 5.0
