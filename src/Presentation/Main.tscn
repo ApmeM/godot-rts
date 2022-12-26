@@ -1,10 +1,12 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://Presentation/Main.cs" type="Script" id=1]
 [ext_resource path="res://Presentation/Person.tscn" type="PackedScene" id=2]
 [ext_resource path="res://gd-minimap/Minimap.tscn" type="PackedScene" id=3]
 [ext_resource path="res://Presentation/Well.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Presentation/Tree.tscn" type="PackedScene" id=5]
 [ext_resource path="res://gd-achievements/AchievementNotifications.tscn" type="PackedScene" id=6]
+[ext_resource path="res://Presentation/Map.tscn" type="PackedScene" id=7]
 
 [node name="Main" type="Node"]
 script = ExtResource( 1 )
@@ -21,30 +23,40 @@ WorldRectSize = Vector2( 480, 480 )
 
 [node name="AchievementNotifications" parent="." instance=ExtResource( 6 )]
 
-[node name="TileMap" type="TileMap" parent="."]
-position = Vector2( 238, 5 )
-mode = 1
-cell_size = Vector2( 16, 16 )
-format = 1
+[node name="Map" parent="." instance=ExtResource( 7 )]
 
-[node name="YSort" type="YSort" parent="."]
+[node name="Person" parent="Map" instance=ExtResource( 2 )]
+position = Vector2( 120, 46 )
 
-[node name="Person3" parent="YSort" instance=ExtResource( 2 )]
-position = Vector2( 195, 172 )
-TileMapReference = NodePath("../../TileMap")
-MaxThristLevel = 100.0
-ThristSpeed = 3.0
-ThristThreshold = 50.0
+[node name="Person2" parent="Map" instance=ExtResource( 2 )]
+position = Vector2( 84, 70 )
 
-[node name="Person2" parent="YSort" instance=ExtResource( 2 )]
-position = Vector2( 213, 171 )
-TileMapReference = NodePath("../../TileMap")
-MaxThristLevel = 100.0
-ThristSpeed = 3.0
-ThristThreshold = 50.0
+[node name="Well" parent="Map" instance=ExtResource( 4 )]
+position = Vector2( 126, 151 )
 
-[node name="Well" parent="YSort" instance=ExtResource( 4 )]
-position = Vector2( 201, 277 )
-TileMapReference = NodePath("../../TileMap")
-MaxAmount = 100.0
-Regeneration = 5.0
+[node name="Tree" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 81, 134 )
+
+[node name="Tree2" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 69, 117 )
+
+[node name="Tree3" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 83, 185 )
+
+[node name="Tree4" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 57, 139 )
+
+[node name="Tree5" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 155, 134 )
+
+[node name="Tree6" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 154, 180 )
+
+[node name="Tree7" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 126, 181 )
+
+[node name="Tree8" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 70, 162 )
+
+[node name="Tree9" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 95, 158 )

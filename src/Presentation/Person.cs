@@ -21,6 +21,8 @@ public partial class Person
 
     private float CurrentThristLevel { get; set; } = 100;
 
+    private ActionExecutor actions = new ActionExecutor();
+
     public Random r = new Random();
 
     public override void _Ready()
@@ -28,10 +30,8 @@ public partial class Person
         base._Ready();
         this.FillMembers();
 
-        this.targetPosition = this.Position;
+        FindNewTarget();
     }
-
-    private Vector2 targetPosition;
 
     public override void _Process(float delta)
     {
@@ -41,7 +41,10 @@ public partial class Person
         if (this.CurrentThristLevel < this.ThristThreshold)
         {
             var water = this.GetTree().GetNodesInGroup(Groups.WaterToDrink).Cast<Node2D>().First();
-            this.targetPosition = water.Position;
+            actions.CancelActions();
+            actions.AddAction(new MoveUnitAction(this, water.Position, this.MoveSpeed));
+            actions.AddAction(new SleepUnitAction((float)r.NextDouble() * 2));
+            actions.AddAction(new CallbackUnitAction(FindNewTarget));
 
             if (this.Position == water.Position)
             {
@@ -59,23 +62,14 @@ public partial class Person
             this.QueueFree();
         }
 
-        if (this.targetPosition != this.Position)
-        {
-            if ((this.targetPosition - this.Position).LengthSquared() < MoveSpeed * MoveSpeed * delta * delta)
-            {
-                this.Position = this.targetPosition;
-            }
-            else
-            {
-                this.Position = this.Position + delta * MoveSpeed * ((this.targetPosition - this.Position).Normalized());
-            }
-        }
-        else
-        {
-            if (r.NextDouble() < 0.1)
-            {
-                this.targetPosition = this.tileMap.MapToGlobal(new Vector2(r.Next(50), r.Next(50)));
-            }
-        }
+        actions.Process(delta);
+    }
+
+    private void FindNewTarget()
+    {
+        var targetPosition = this.map.MapToGlobal(new Vector2(r.Next(50), r.Next(50)));
+        actions.AddAction(new MoveUnitAction(this, targetPosition, this.MoveSpeed));
+        actions.AddAction(new SleepUnitAction((float)r.NextDouble() * 2));
+        actions.AddAction(new CallbackUnitAction(FindNewTarget));
     }
 }

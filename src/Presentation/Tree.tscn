@@ -1,0 +1,23 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Presentation/TileMapObject.tscn" type="PackedScene" id=1]
+[ext_resource path="res://Presentation/Tree.cs" type="Script" id=2]
+
+[sub_resource type="Gradient" id=1]
+colors = PoolColorArray( 1, 1, 1, 1, 0.131823, 0.632812, 0.0444946, 1 )
+
+[sub_resource type="GradientTexture" id=2]
+gradient = SubResource( 1 )
+width = 8
+
+[node name="Tree" instance=ExtResource( 1 )]
+script = ExtResource( 2 )
+
+[node name="Node2D" type="Node2D" parent="." index="0"]
+position = Vector2( 0, -10 )
+scale = Vector2( 1, 2 )
+
+[node name="Sprite" type="Sprite" parent="Node2D" index="0"]
+rotation = 0.785398
+scale = Vector2( 2, 16 )
+texture = SubResource( 2 )
