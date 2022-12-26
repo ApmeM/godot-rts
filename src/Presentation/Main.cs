@@ -11,10 +11,6 @@ public partial class Main
         this.FillMembers();
 
         // For debug purposes all achievements can be reset
-        new LocalAchievementRepository().ResetAchievements();
-
-        // See achievements definitions in gd-achievements/achievements.json
-        this.achievementNotifications.UnlockAchievement("MyFirstAchievement");
-        this.achievementList.ReloadList();
+        this.di.localAchievementRepository.ResetAchievements();
     }
 }

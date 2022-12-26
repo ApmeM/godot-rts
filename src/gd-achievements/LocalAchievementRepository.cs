@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using GodotAnalysers;
 using Newtonsoft.Json;
 
 namespace GodotRts.Achievements
 {
+    [Injectable(false)]
     public class LocalAchievementRepository : IAchievementRepository
     {
         private class AchievementDefinition

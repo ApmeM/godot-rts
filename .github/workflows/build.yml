@@ -41,7 +41,7 @@ jobs:
 
       - name: Restore packages
         run: |
-          dotnet restore "./src/GodotRts.sln"
+          dotnet restore "./src/GodotTemplate.sln"
 
       - name: Update presets config
         env:
@@ -117,11 +117,14 @@ jobs:
           name: android
           path: ./android
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy to Google Play
         uses: r0adkll/upload-google-play@v1
+        if: "${{ env.SERVICE_ACCOUNT_JSON != ''}}"
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-          packageName: org.apmem.games.godotRts
-          releaseFiles: ./android/GodotRts.apk
+          packageName: org.apmem.games.godotTemplate
+          releaseFiles: ./android/GodotTemplate.apk
           track: production
           status: completed
