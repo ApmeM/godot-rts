@@ -4,7 +4,7 @@
     <RootNamespace>GodotRts</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="BrainAI" Version="2.3.0" />
+    <PackageReference Include="BrainAI" Version="2.4.0" />
     <PackageReference Include="FateRandom" Version="1.0.0" />
     <PackageReference Include="GodotAnalysers" Version="1.6.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

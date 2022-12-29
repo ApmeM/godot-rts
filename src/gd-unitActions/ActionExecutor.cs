@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 public class ActionExecutor
@@ -27,5 +28,10 @@ public class ActionExecutor
         {
             PendingActions.Dequeue();
         }
+    }
+
+    public bool IsEmpty()
+    {
+        return PendingActions.Count == 0;
     }
 }

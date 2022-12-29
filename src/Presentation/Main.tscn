@@ -24,39 +24,61 @@ WorldRectSize = Vector2( 480, 480 )
 [node name="AchievementNotifications" parent="." instance=ExtResource( 6 )]
 
 [node name="Map" parent="." instance=ExtResource( 7 )]
+cell_size = Vector2( 32, 32 )
 
 [node name="Person" parent="Map" instance=ExtResource( 2 )]
-position = Vector2( 120, 46 )
+position = Vector2( 128, 111 )
 
 [node name="Person2" parent="Map" instance=ExtResource( 2 )]
-position = Vector2( 84, 70 )
+position = Vector2( 85, 152 )
 
 [node name="Well" parent="Map" instance=ExtResource( 4 )]
 position = Vector2( 126, 151 )
 
 [node name="Tree" parent="Map" instance=ExtResource( 5 )]
-position = Vector2( 81, 134 )
+position = Vector2( 47, 142 )
 
 [node name="Tree2" parent="Map" instance=ExtResource( 5 )]
-position = Vector2( 69, 117 )
+position = Vector2( 46, 77 )
 
 [node name="Tree3" parent="Map" instance=ExtResource( 5 )]
-position = Vector2( 83, 185 )
+position = Vector2( 165, 76 )
 
 [node name="Tree4" parent="Map" instance=ExtResource( 5 )]
-position = Vector2( 57, 139 )
+position = Vector2( 48, 110 )
 
 [node name="Tree5" parent="Map" instance=ExtResource( 5 )]
-position = Vector2( 155, 134 )
+position = Vector2( 156, 141 )
 
 [node name="Tree6" parent="Map" instance=ExtResource( 5 )]
 position = Vector2( 154, 180 )
 
 [node name="Tree7" parent="Map" instance=ExtResource( 5 )]
-position = Vector2( 126, 181 )
+position = Vector2( 175, 221 )
 
 [node name="Tree8" parent="Map" instance=ExtResource( 5 )]
-position = Vector2( 70, 162 )
+position = Vector2( 49, 180 )
 
 [node name="Tree9" parent="Map" instance=ExtResource( 5 )]
-position = Vector2( 95, 158 )
+position = Vector2( 153, 218 )
+
+[node name="Tree10" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 179, 101 )
+
+[node name="Tree11" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 157, 106 )
+
+[node name="Tree12" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 180, 140 )
+
+[node name="Tree13" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 177, 184 )
+
+[node name="Tree14" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 117, 214 )
+
+[node name="Tree15" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 52, 214 )
+
+[node name="Tree16" parent="Map" instance=ExtResource( 5 )]
+position = Vector2( 81, 213 )

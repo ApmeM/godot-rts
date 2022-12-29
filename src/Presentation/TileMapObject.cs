@@ -9,6 +9,8 @@ public partial class TileMapObject
 
     private Vector2 lastCell;
 
+    protected Vector2[] BlockingCells { get; set; } = new Vector2[0];
+
     public override void _Ready()
     {
         base._Ready();
@@ -16,7 +18,10 @@ public partial class TileMapObject
 
         this.map = this.GetParent<Map>();
 
-        this.Position = this.map.ArrangeGlobalPositionToCell(this.Position);
+        this.lastCell = this.map.GlobalToMap(this.Position);
+        this.Position = this.map.MapToGlobal(lastCell);
+        map.graph.AddNode2D(this, this.lastCell, this.BlockingCells);
+        GD.Print($"Adding {GetType()} to the graph at {lastCell}");
     }
 
     public override void _Process(float delta)
@@ -26,7 +31,14 @@ public partial class TileMapObject
         if (lastCell != currentCell)
         {
             lastCell = currentCell;
-            map.UpdatePosition(this, lastCell);
+            if (!map.graph.Node2Ds.ContainsKey(this))
+            {
+                map.graph.AddNode2D(this, this.lastCell, this.BlockingCells);
+            }
+            else
+            {
+                map.graph.MoveNode2D(this, this.lastCell, this.BlockingCells);
+            }
         }
     }
 }
