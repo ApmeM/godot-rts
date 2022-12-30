@@ -1,17 +1,32 @@
 using System;
 using System.Linq;
-using BrainAI.Pathfinding.AStar;
+using BrainAI.Pathfinding;
 using Godot;
 using GodotAnalysers;
 using GodotRts.Presentation.Utils;
 using BrainAI.AI.UtilityAI;
-using BrainAI.AI.UtilityAI.Appraisals;
-using BrainAI.AI.UtilityAI.Reasoners;
-using BrainAI.AI.UtilityAI.Actions;
 
 [SceneReference("Person.tscn")]
 public partial class Person
 {
+
+    public class Context
+    {
+        public Node2D Node;
+
+        public float delta;
+
+        public ActionExecutor Actions = new ActionExecutor();
+
+        public float ThristThreshold { get; set; } = 50;
+
+        public float CurrentThristLevel { get; set; } = 100;
+
+        public float MaxThristLevel { get; set; } = 100;
+
+        public bool GoingToDrink { get; set; } = false;
+    }
+
     [Export]
     public float MoveSpeed { get; set; } = 128;
 
@@ -36,7 +51,7 @@ public partial class Person
 
         var reasoner = new HighestScoreReasoner<Context>();
         reasoner.Add(
-            new MultiplyOfchildrenAppraisal<Context>(
+            new MultAppraisal<Context>(
                 new ActionAppraisal<Context>(a => a.MaxThristLevel - a.CurrentThristLevel),
                 new ActionAppraisal<Context>(a => a.GoingToDrink ? 0 : 1)
                 ),
@@ -59,9 +74,9 @@ public partial class Person
                 }));
 
         reasoner.Add(
-            new MultiplyOfchildrenAppraisal<Context>(
+            new MultAppraisal<Context>(
                 new ActionAppraisal<Context>(a => a.GoingToDrink ? 1 : 0),
-                new FixedScoreAppraisal<Context>(100)
+                new FixedAppraisal<Context>(100)
                 ),
                 new PrintAction<Context>("Going to drink"),
                 new ActionAction<Context>(a =>
@@ -75,9 +90,9 @@ public partial class Person
 
 
         reasoner.Add(
-            new MultiplyOfchildrenAppraisal<Context>(
+            new MultAppraisal<Context>(
                 new ActionAppraisal<Context>(a => a.CurrentThristLevel <= 0 ? 1 : 0),
-                new FixedScoreAppraisal<Context>(1000)
+                new FixedAppraisal<Context>(1000)
                 ),
                 new PrintAction<Context>("Dying"),
                 new ActionAction<Context>(a =>
@@ -86,8 +101,8 @@ public partial class Person
                 }));
 
         reasoner.Add(
-            new MultiplyOfchildrenAppraisal<Context>(
-                new FixedScoreAppraisal<Context>(50),
+            new MultAppraisal<Context>(
+                new FixedAppraisal<Context>(50),
                 new ActionAppraisal<Context>(a => a.Actions.IsEmpty() ? 1 : 0)
                 ),
                 new PrintAction<Context>("Thinking"),
@@ -109,8 +124,8 @@ public partial class Person
                 }));
 
         reasoner.Add(
-            new MultiplyOfchildrenAppraisal<Context>(
-                new FixedScoreAppraisal<Context>(50),
+            new MultAppraisal<Context>(
+                new FixedAppraisal<Context>(50),
                 new ActionAppraisal<Context>(a => a.Actions.IsEmpty() ? 0 : 1)
                 ),
                 new PrintAction<Context>("Walking"),
@@ -145,18 +160,26 @@ public class PrintAction<T> : IAction<T>
         this.text = text;
     }
 
+    public void Enter(T context)
+    {
+    }
+
     public void Execute(T context)
     {
         GD.Print(text);
+    }
+
+    public void Exit(T context)
+    {
     }
 }
 
 public class DrinkUnitAction : IUnitAction
 {
-    private readonly Context context;
+    private readonly Person.Context context;
     private readonly Well well;
 
-    public DrinkUnitAction(Context context, Well well)
+    public DrinkUnitAction(Person.Context context, Well well)
     {
         this.context = context;
         this.well = well;
@@ -169,22 +192,5 @@ public class DrinkUnitAction : IUnitAction
         context.CurrentThristLevel += toDrink;
         return true;
     }
-}
-
-public class Context
-{
-    public Node2D Node;
-
-    public float delta;
-
-    public ActionExecutor Actions = new ActionExecutor();
-
-    public float ThristThreshold { get; set; } = 50;
-
-    public float CurrentThristLevel { get; set; } = 100;
-
-    public float MaxThristLevel { get; set; } = 100;
-
-    public bool GoingToDrink { get; set; } = false;
 }
 

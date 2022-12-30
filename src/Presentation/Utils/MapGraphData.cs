@@ -1,4 +1,4 @@
-using BrainAI.Pathfinding.AStar;
+using BrainAI.Pathfinding;
 using Godot;
 using System;
 using System.Collections.Generic;
