@@ -8,7 +8,7 @@ public partial class Well
     {
         public float MaxAmount = 100;
 
-        public float Regeneration = 5;
+        public float Regeneration = 10;
 
         public float CurrentAmount = 50;
 

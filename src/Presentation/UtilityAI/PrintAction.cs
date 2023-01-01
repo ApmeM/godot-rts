@@ -21,6 +21,7 @@ public class PrintAction<T> : IAction<T> where T : IPrintActionContext
     public void Execute(T context)
     {
         context.CurrentActionName = text;
+        // Godot.GD.Print(text);
     }
 
     public void Exit(T context)

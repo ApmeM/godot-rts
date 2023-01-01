@@ -32,8 +32,17 @@ position = Vector2( 128, 111 )
 [node name="Person2" parent="Map" instance=ExtResource( 2 )]
 position = Vector2( 85, 152 )
 
+[node name="Person3" parent="Map" instance=ExtResource( 2 )]
+position = Vector2( 160, 172 )
+
+[node name="Person4" parent="Map" instance=ExtResource( 2 )]
+position = Vector2( 93, 103 )
+
 [node name="Well" parent="Map" instance=ExtResource( 4 )]
 position = Vector2( 126, 151 )
+
+[node name="Well2" parent="Map" instance=ExtResource( 4 )]
+position = Vector2( 72, 283 )
 
 [node name="Tree" parent="Map" instance=ExtResource( 5 )]
 position = Vector2( 47, 142 )
@@ -51,7 +60,7 @@ position = Vector2( 48, 110 )
 position = Vector2( 156, 141 )
 
 [node name="Tree6" parent="Map" instance=ExtResource( 5 )]
-position = Vector2( 154, 180 )
+position = Vector2( 118, 257 )
 
 [node name="Tree7" parent="Map" instance=ExtResource( 5 )]
 position = Vector2( 175, 221 )
@@ -72,7 +81,7 @@ position = Vector2( 157, 106 )
 position = Vector2( 180, 140 )
 
 [node name="Tree13" parent="Map" instance=ExtResource( 5 )]
-position = Vector2( 177, 184 )
+position = Vector2( 120, 293 )
 
 [node name="Tree14" parent="Map" instance=ExtResource( 5 )]
 position = Vector2( 117, 214 )

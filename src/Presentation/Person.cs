@@ -4,21 +4,24 @@ using BrainAI.Pathfinding;
 using Godot;
 using GodotAnalysers;
 using BrainAI.AI.UtilityAI;
+using System.Collections.Generic;
 
 [SceneReference("Person.tscn")]
 public partial class Person
 {
-    public class Context : TileMapObject.Context, IPrintActionContext
+    public class Context : TileMapObject.Context, IPrintActionContext, IMoveActionContext
     {
+        public Well.Context Well;
+
         public string CurrentActionName { get; set; }
 
-        public float Delta;
+        public float Delta { get; set; }
 
-        public ActionExecutor Actions = new ActionExecutor();
+        public bool IsDead { get; set; }
 
-        public bool IsDead;
+        public float ThinkTimeout { get; set; }
 
-        public float ThinkTimeout;
+        public List<Vector2> Path { get; set; }
 
         public float ThristThreshold { get; set; } = 50;
 
@@ -26,17 +29,16 @@ public partial class Person
 
         public float MaxThristLevel { get; set; } = 100;
 
-        public bool GoingToDrink { get; set; } = false;
-
         public float MoveSpeed { get; set; } = 128;
 
         public float ThristSpeed { get; set; } = 3f;
+
+        public float DrinkSpeed { get; set; } = 50f;
 
         public void Tick(float delta)
         {
             this.CurrentThristLevel -= this.ThristSpeed * delta;
             this.Delta = delta;
-
         }
     }
 
@@ -76,44 +78,7 @@ public partial class Person
 
     public Reasoner<Context> InitAI()
     {
-        var reasoner = new HighestScoreReasoner<Context>();
-        reasoner.Add(
-            new MultAppraisal<Context>(
-                new ActionAppraisal<Context>(a => a.MaxThristLevel - a.CurrentThristLevel),
-                new ActionAppraisal<Context>(a => a.GoingToDrink ? 0 : 1)
-                ),
-                new PrintAction<Context>("Looking for water"),
-                new ActionAction<Context>(a =>
-                {
-                    a.GoingToDrink = true;
-                    var well = a.MapContext.KnownPositions.Keys.OfType<Well.Context>().First();
-                    var personMap = a.MapContext.WorldToMap(this.Position);
-                    var wellMap = a.MapContext.WorldToMap(well.Position);
-                    var result = AStarPathfinder.Search(a.MapContext, personMap, wellMap);
-                    a.Actions.CancelActions();
-                    foreach (var cell in result)
-                    {
-                        var targetPosition = a.MapContext.MapToWorld(cell);
-                        a.Actions.AddAction(new MoveUnitAction(a, targetPosition, a.MoveSpeed));
-                    }
-                    a.Actions.AddAction(new DrinkUnitAction(a, well));
-                }));
-
-        reasoner.Add(
-            new MultAppraisal<Context>(
-                new ActionAppraisal<Context>(a => a.GoingToDrink ? 1 : 0),
-                new FixedAppraisal<Context>(100)
-                ),
-                new PrintAction<Context>("Going to drink"),
-                new ActionAction<Context>(a =>
-                {
-                    a.Actions.Process(a.Delta);
-                    if (a.Actions.IsEmpty())
-                    {
-                        a.GoingToDrink = false;
-                    }
-                }));
-
+        var reasoner = new FirstScoreReasoner<Context>(1);
 
         reasoner.Add(
             new MultAppraisal<Context>(
@@ -128,8 +93,47 @@ public partial class Person
 
         reasoner.Add(
             new MultAppraisal<Context>(
-                new FixedAppraisal<Context>(50),
-                new ActionAppraisal<Context>(a => a.Actions.IsEmpty() ? 1 : 0)
+                new ActionAppraisal<Context>(a => a.CurrentThristLevel < a.ThristThreshold ? 1 : 0),
+                new ActionAppraisal<Context>(a => a.Well == null ? 1 : 0)
+                ),
+                new PrintAction<Context>("Looking for water"),
+                new ActionAction<Context>(a =>
+                {
+                    a.Well = a.MapContext.KnownPositions.Keys.OfType<Well.Context>().OrderBy(b => (b.Position - a.Position).LengthSquared()).First();
+                    var personMap = a.MapContext.WorldToMap(this.Position);
+                    var wellMap = a.MapContext.WorldToMap(a.Well.Position);
+                    a.Path = AStarPathfinder.Search(a.MapContext, personMap, wellMap);
+                }));
+
+        reasoner.Add(
+            new MultAppraisal<Context>(
+                new ActionAppraisal<Context>(a => a.Well != null ? 1 : 0),
+                new ActionAppraisal<Context>(a => a.Well.Position != a.Position ? 1 : 0)
+                ),
+                new PrintAction<Context>("Moving for water"),
+                new MoveAction<Context>());
+
+        reasoner.Add(
+            new MultAppraisal<Context>(
+                new ActionAppraisal<Context>(a => a.Well != null ? 1 : 0),
+                new ActionAppraisal<Context>(a => a.Well.Position == a.Position ? 1 : 0)
+                ),
+                new PrintAction<Context>("Drinking for water"),
+                new ActionAction<Context>(
+                    a =>
+                    {
+                        var toDrink = Math.Min(a.DrinkSpeed * a.Delta, Math.Min(a.MaxThristLevel - a.CurrentThristLevel, a.Well.CurrentAmount));
+                        a.Well.CurrentAmount -= toDrink;
+                        a.CurrentThristLevel += toDrink;
+                        if (Math.Abs(a.MaxThristLevel - a.CurrentThristLevel) < 0.1f)
+                        {
+                            a.Well = null;
+                        }
+                    }));
+
+        reasoner.Add(
+            new MultAppraisal<Context>(
+                new ActionAppraisal<Context>(a => a.Path == null || !a.Path.Any() ? 1 : 0)
                 ),
                 new PrintAction<Context>("Thinking"),
                 new ActionAction<Context>(
@@ -144,50 +148,19 @@ public partial class Person
 
                         var targetMap = new Vector2(r.Next(25), r.Next(25));
                         var personMap = a.MapContext.WorldToMap(this.Position);
-                        var result = AStarPathfinder.Search(a.MapContext, personMap, targetMap);
-                        if (result != null)
-                        {
-                            foreach (var cell in result)
-                            {
-                                var targetPosition = a.MapContext.MapToWorld(cell);
-                                a.Actions.AddAction(new MoveUnitAction(a, targetPosition, a.MoveSpeed));
-                            }
-                        }
+                        a.Path = AStarPathfinder.Search(a.MapContext, personMap, targetMap);
                     },
                     a => { }));
 
         reasoner.Add(
             new MultAppraisal<Context>(
-                new FixedAppraisal<Context>(50),
-                new ActionAppraisal<Context>(a => a.Actions.IsEmpty() ? 0 : 1)
+                new FixedAppraisal<Context>(1),
+                new ActionAppraisal<Context>(a => a.Path != null && a.Path.Any() ? 1 : 0)
                 ),
                 new PrintAction<Context>("Walking"),
-                new ActionAction<Context>(a =>
-                {
-                    a.Actions.Process(a.Delta);
-                }));
+                new MoveAction<Context>());
 
         return reasoner;
-    }
-}
-
-public class DrinkUnitAction : IUnitAction
-{
-    private readonly Person.Context context;
-    private readonly Well.Context well;
-
-    public DrinkUnitAction(Person.Context context, Well.Context well)
-    {
-        this.context = context;
-        this.well = well;
-    }
-
-    public bool Process(float delta)
-    {
-        var toDrink = Math.Min(context.MaxThristLevel - context.CurrentThristLevel, well.CurrentAmount);
-        well.CurrentAmount -= toDrink;
-        context.CurrentThristLevel += toDrink;
-        return true;
     }
 }
 

@@ -9,8 +9,8 @@ public partial class TileMapObject
 
     public class Context
     {
-        public Vector2 Position;
-        public Map.Context MapContext;
+        public Vector2 Position { get; set; }
+        public Map.Context MapContext { get; set; }
         public Vector2[] BlockingCells { get; set; } = new Vector2[0];
 
         public void Move(Vector2 delta)
