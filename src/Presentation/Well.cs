@@ -4,13 +4,15 @@ using Godot;
 [SceneReference("Well.tscn")]
 public partial class Well
 {
-    public class Context : TileMapObject.Context
+    public class Context : TileMapObject.Context, IDrinkFromActionContext
     {
         public float MaxAmount = 100;
 
         public float Regeneration = 10;
 
-        public float CurrentAmount = 50;
+        public float CurrentAmount { get; set; } = 50;
+
+        public bool IsDrinkable { get; set; } = true;
 
         public void Tick(float delta)
         {
@@ -22,6 +24,13 @@ public partial class Well
                     CurrentAmount = MaxAmount;
                 }
             }
+        }
+
+        public float TryDrink(float amount)
+        {
+            var toDrink = Mathf.Min(amount, CurrentAmount);
+            CurrentAmount -= toDrink;
+            return toDrink;
         }
     }
 

@@ -9,9 +9,13 @@ using System.Collections.Generic;
 [SceneReference("Person.tscn")]
 public partial class Person
 {
-    public class Context : TileMapObject.Context, IPrintActionContext, IMoveActionContext
+    public class Context : TileMapObject.Context, IPrintActionContext, IMoveActionContext, IDrinkActionContext, IBuildActionContext
     {
-        public Well.Context Well;
+        public IBuildItemActionContext Build { get; set; }
+        public float BuildSpeed { get; set; } = 1;
+
+        public IDrinkFromActionContext Well { get; set; }
+
 
         public string CurrentActionName { get; set; }
 
@@ -34,6 +38,15 @@ public partial class Person
         public float ThristSpeed { get; set; } = 3f;
 
         public float DrinkSpeed { get; set; } = 50f;
+
+        public void Drink(float amount)
+        {
+            this.CurrentThristLevel += amount;
+            if (Math.Abs(this.MaxThristLevel - this.CurrentThristLevel) < 0.1f)
+            {
+                this.Well = null;
+            }
+        }
 
         public void Tick(float delta)
         {
@@ -99,7 +112,7 @@ public partial class Person
                 new PrintAction<Context>("Looking for water"),
                 new ActionAction<Context>(a =>
                 {
-                    a.Well = a.MapContext.KnownPositions.Keys.OfType<Well.Context>().OrderBy(b => (b.Position - a.Position).LengthSquared()).First();
+                    a.Well = a.MapContext.KnownPositions.Keys.OfType<IDrinkFromActionContext>().Where(b => b.IsDrinkable).OrderBy(b => (b.Position - a.Position).LengthSquared()).First();
                     var personMap = a.MapContext.WorldToMap(this.Position);
                     var wellMap = a.MapContext.WorldToMap(a.Well.Position);
                     a.Path = AStarPathfinder.Search(a.MapContext, personMap, wellMap);
@@ -119,17 +132,39 @@ public partial class Person
                 new ActionAppraisal<Context>(a => a.Well.Position == a.Position ? 1 : 0)
                 ),
                 new PrintAction<Context>("Drinking for water"),
+                new DrinkAction<Context>());
+
+        reasoner.Add(
+            new MultAppraisal<Context>(
+                new ActionAppraisal<Context>(a => a.MapContext.KnownPositions.Keys.OfType<Construction.Context>().Any(b => b.BuildHP != b.MaxHP) ? 1 : 0),
+                new ActionAppraisal<Context>(a => a.Build == null ? 1 : 0)
+                ),
+                new PrintAction<Context>("Going to build"),
                 new ActionAction<Context>(
                     a =>
                     {
-                        var toDrink = Math.Min(a.DrinkSpeed * a.Delta, Math.Min(a.MaxThristLevel - a.CurrentThristLevel, a.Well.CurrentAmount));
-                        a.Well.CurrentAmount -= toDrink;
-                        a.CurrentThristLevel += toDrink;
-                        if (Math.Abs(a.MaxThristLevel - a.CurrentThristLevel) < 0.1f)
-                        {
-                            a.Well = null;
-                        }
+                        a.Build = a.MapContext.KnownPositions.Keys.OfType<Construction.Context>().First(b => b.BuildHP != b.MaxHP);
+
+                        var targetMap = a.MapContext.WorldToMap(a.Build.Position);
+                        var personMap = a.MapContext.WorldToMap(this.Position);
+                        a.Path = AStarPathfinder.Search(a.MapContext, personMap, targetMap);
                     }));
+
+        reasoner.Add(
+            new MultAppraisal<Context>(
+                new ActionAppraisal<Context>(a => a.Build != null ? 1 : 0),
+                new ActionAppraisal<Context>(a => a.Build.Position != a.Position ? 1 : 0)
+                ),
+                new PrintAction<Context>("Moving for build"),
+                new MoveAction<Context>());
+
+        reasoner.Add(
+            new MultAppraisal<Context>(
+                new ActionAppraisal<Context>(a => a.Build != null ? 1 : 0),
+                new ActionAppraisal<Context>(a => a.Build.Position == a.Position ? 1 : 0)
+                ),
+                new PrintAction<Context>("Building for build"),
+                new BuildAction<Context>());
 
         reasoner.Add(
             new MultAppraisal<Context>(
