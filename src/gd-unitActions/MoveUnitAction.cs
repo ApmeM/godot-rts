@@ -4,10 +4,10 @@ public class MoveUnitAction : IUnitAction
 {
     private const int DEFAULT_MOVE_SPEED = 160;
 
-    private readonly Node2D unit;
+    private readonly TileMapObject.Context unit;
     private readonly Vector2 destination;
 
-    public MoveUnitAction(Node2D unit, Vector2 destination, float moveSpeed = DEFAULT_MOVE_SPEED)
+    public MoveUnitAction(TileMapObject.Context unit, Vector2 destination, float moveSpeed = DEFAULT_MOVE_SPEED)
     {
         this.unit = unit;
         this.destination = destination;

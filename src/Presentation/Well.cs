@@ -1,16 +1,31 @@
-using Godot;
 using GodotAnalysers;
+using Godot;
 
 [SceneReference("Well.tscn")]
 public partial class Well
 {
-    [Export]
-    public float MaxAmount { get; set; } = 100;
+    public class Context : TileMapObject.Context
+    {
+        public float MaxAmount = 100;
 
-    [Export]
-    public float Regeneration { get; set; } = 5;
+        public float Regeneration = 5;
 
-    public float CurrentAmount { get; set; } = 50;
+        public float CurrentAmount = 50;
+
+        public void Tick(float delta)
+        {
+            if (CurrentAmount < MaxAmount)
+            {
+                CurrentAmount += delta * Regeneration;
+                if (CurrentAmount > MaxAmount)
+                {
+                    CurrentAmount = MaxAmount;
+                }
+            }
+        }
+    }
+
+    private Context myContext => (Context)this.context;
 
     public override void _Ready()
     {
@@ -24,15 +39,15 @@ public partial class Well
     {
         base._Process(delta);
 
-        this.label.Text = this.CurrentAmount.ToString("#");
+        this.myContext.Tick(delta);
 
-        if (CurrentAmount < MaxAmount)
-        {
-            CurrentAmount += delta * Regeneration;
-            if (CurrentAmount > MaxAmount)
-            {
-                CurrentAmount = MaxAmount;
-            }
-        }
+        this.label.Text = this.myContext.CurrentAmount.ToString("#");
     }
+
+    public override void InitContext(Map.Context mapContext)
+    {
+        this.context = this.context ?? new Context();
+        base.InitContext(mapContext);
+    }
+
 }

@@ -12,5 +12,7 @@ public partial class Main
 
         // For debug purposes all achievements can be reset
         this.di.localAchievementRepository.ResetAchievements();
+
+        this.map.InitContext(25, 25);
     }
 }

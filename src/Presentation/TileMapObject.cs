@@ -1,44 +1,48 @@
+using System;
 using Godot;
 using GodotAnalysers;
-using GodotRts.Presentation.Utils;
 
 [SceneReference("TileMapObject.tscn")]
 public partial class TileMapObject
 {
-    protected Map map;
+    protected Context context;
 
-    private Vector2 lastCell;
+    public class Context
+    {
+        public Vector2 Position;
+        public Map.Context MapContext;
+        public Vector2[] BlockingCells { get; set; } = new Vector2[0];
 
-    protected Vector2[] BlockingCells { get; set; } = new Vector2[0];
+        public void Move(Vector2 delta)
+        {
+            this.Position += delta;
+            this.MapContext.UpdatePosition(this);
+        }
+
+        public void InitPosition(Vector2 position)
+        {
+            this.Position = this.MapContext.MapToWorld(this.MapContext.WorldToMap(position));
+            this.MapContext.AddPosition(this);
+        }
+    }
 
     public override void _Ready()
     {
         base._Ready();
         this.FillMembers();
-
-        this.map = this.GetParent<Map>();
-
-        this.lastCell = this.map.GlobalToMap(this.Position);
-        this.Position = this.map.MapToGlobal(lastCell);
-        map.graph.AddNode2D(this, this.lastCell, this.BlockingCells);
-        GD.Print($"Adding {GetType()} to the graph at {lastCell}");
     }
 
     public override void _Process(float delta)
     {
         base._Process(delta);
-        var currentCell = this.map.GlobalToMap(this.Position);
-        if (lastCell != currentCell)
-        {
-            lastCell = currentCell;
-            if (!map.graph.Node2Ds.ContainsKey(this))
-            {
-                map.graph.AddNode2D(this, this.lastCell, this.BlockingCells);
-            }
-            else
-            {
-                map.graph.MoveNode2D(this, this.lastCell, this.BlockingCells);
-            }
-        }
+
+        this.Position = this.context.Position;
+    }
+
+    public virtual void InitContext(Map.Context mapContext)
+    {
+        this.context = this.context ?? new Context();
+        this.context.MapContext = this.GetParent<Map>().context;
+        this.context.InitPosition(this.Position);
     }
 }

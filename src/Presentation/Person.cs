@@ -3,20 +3,22 @@ using System.Linq;
 using BrainAI.Pathfinding;
 using Godot;
 using GodotAnalysers;
-using GodotRts.Presentation.Utils;
 using BrainAI.AI.UtilityAI;
 
 [SceneReference("Person.tscn")]
 public partial class Person
 {
-
-    public class Context
+    public class Context : TileMapObject.Context, IPrintActionContext
     {
-        public Node2D Node;
+        public string CurrentActionName { get; set; }
 
-        public float delta;
+        public float Delta;
 
         public ActionExecutor Actions = new ActionExecutor();
+
+        public bool IsDead;
+
+        public float ThinkTimeout;
 
         public float ThristThreshold { get; set; } = 50;
 
@@ -25,17 +27,22 @@ public partial class Person
         public float MaxThristLevel { get; set; } = 100;
 
         public bool GoingToDrink { get; set; } = false;
+
+        public float MoveSpeed { get; set; } = 128;
+
+        public float ThristSpeed { get; set; } = 3f;
+
+        public void Tick(float delta)
+        {
+            this.CurrentThristLevel -= this.ThristSpeed * delta;
+            this.Delta = delta;
+
+        }
     }
-
-    [Export]
-    public float MoveSpeed { get; set; } = 128;
-
-    [Export]
-    public float ThristSpeed { get; set; } = 3f;
 
     public Random r = new Random();
 
-    private Context context;
+    private Context myContext => (Context)this.context;
 
     private UtilityAI<Context> ai;
 
@@ -43,12 +50,32 @@ public partial class Person
     {
         base._Ready();
         this.FillMembers();
+    }
 
-        this.context = new Context
+    public override void _Process(float delta)
+    {
+        base._Process(delta);
+
+        this.myContext.Tick(delta);
+        this.ai.Tick();
+
+        if (this.myContext.IsDead)
         {
-            Node = this
-        };
+            this.QueueFree();
+        }
 
+        this.label.Text = this.myContext.CurrentActionName + " " + this.myContext.CurrentThristLevel.ToString("#");
+    }
+
+    public override void InitContext(Map.Context mapContext)
+    {
+        this.context = this.context ?? new Context();
+        base.InitContext(mapContext);
+        this.ai = new UtilityAI<Context>(this.myContext, InitAI());
+    }
+
+    public Reasoner<Context> InitAI()
+    {
         var reasoner = new HighestScoreReasoner<Context>();
         reasoner.Add(
             new MultAppraisal<Context>(
@@ -59,18 +86,17 @@ public partial class Person
                 new ActionAction<Context>(a =>
                 {
                     a.GoingToDrink = true;
-                    var well = a.Node.GetTree().GetNodesInGroup(Groups.WaterToDrink).Cast<Well>().First();
-                    var map = a.Node.GetParent<Map>();
-                    var currentMap = map.GlobalToMap(a.Node.Position);
-                    var onMap = map.GlobalToMap(well.Position);
-                    var result = AStarPathfinder.Search(map.graph, currentMap, onMap);
+                    var well = a.MapContext.KnownPositions.Keys.OfType<Well.Context>().First();
+                    var personMap = a.MapContext.WorldToMap(this.Position);
+                    var wellMap = a.MapContext.WorldToMap(well.Position);
+                    var result = AStarPathfinder.Search(a.MapContext, personMap, wellMap);
                     a.Actions.CancelActions();
                     foreach (var cell in result)
                     {
-                        var targetPosition = this.map.MapToGlobal(cell);
-                        a.Actions.AddAction(new MoveUnitAction(this, targetPosition, this.MoveSpeed));
+                        var targetPosition = a.MapContext.MapToWorld(cell);
+                        a.Actions.AddAction(new MoveUnitAction(a, targetPosition, a.MoveSpeed));
                     }
-                    a.Actions.AddAction(new DrinkUnitAction(context, well));
+                    a.Actions.AddAction(new DrinkUnitAction(a, well));
                 }));
 
         reasoner.Add(
@@ -81,7 +107,7 @@ public partial class Person
                 new PrintAction<Context>("Going to drink"),
                 new ActionAction<Context>(a =>
                 {
-                    a.Actions.Process(a.delta);
+                    a.Actions.Process(a.Delta);
                     if (a.Actions.IsEmpty())
                     {
                         a.GoingToDrink = false;
@@ -97,7 +123,7 @@ public partial class Person
                 new PrintAction<Context>("Dying"),
                 new ActionAction<Context>(a =>
                 {
-                    a.Node.QueueFree();
+                    a.IsDead = true;
                 }));
 
         reasoner.Add(
@@ -106,22 +132,29 @@ public partial class Person
                 new ActionAppraisal<Context>(a => a.Actions.IsEmpty() ? 1 : 0)
                 ),
                 new PrintAction<Context>("Thinking"),
-                new ActionAction<Context>(a =>
-                {
-                    var onMap = new Vector2(r.Next(25), r.Next(25));
-                    var map = a.Node.GetParent<Map>();
-                    var currentMap = map.GlobalToMap(this.Position);
-                    var result = AStarPathfinder.Search(map.graph, currentMap, onMap);
-                    if (result != null)
+                new ActionAction<Context>(
+                    a => { a.ThinkTimeout = this.r.Next(3); },
+                    a =>
                     {
-                        foreach (var cell in result)
+                        a.ThinkTimeout -= a.Delta;
+                        if (a.ThinkTimeout > 0)
                         {
-                            var targetPosition = this.map.MapToGlobal(cell);
-                            a.Actions.AddAction(new MoveUnitAction(this, targetPosition, this.MoveSpeed));
+                            return;
                         }
-                        a.Actions.AddAction(new SleepUnitAction((float)r.NextDouble() * 2));
-                    }
-                }));
+
+                        var targetMap = new Vector2(r.Next(25), r.Next(25));
+                        var personMap = a.MapContext.WorldToMap(this.Position);
+                        var result = AStarPathfinder.Search(a.MapContext, personMap, targetMap);
+                        if (result != null)
+                        {
+                            foreach (var cell in result)
+                            {
+                                var targetPosition = a.MapContext.MapToWorld(cell);
+                                a.Actions.AddAction(new MoveUnitAction(a, targetPosition, a.MoveSpeed));
+                            }
+                        }
+                    },
+                    a => { }));
 
         reasoner.Add(
             new MultAppraisal<Context>(
@@ -131,55 +164,19 @@ public partial class Person
                 new PrintAction<Context>("Walking"),
                 new ActionAction<Context>(a =>
                 {
-                    a.Actions.Process(a.delta);
+                    a.Actions.Process(a.Delta);
                 }));
 
-
-        this.ai = new UtilityAI<Context>(this.context, reasoner);
-    }
-
-    public override void _Process(float delta)
-    {
-        base._Process(delta);
-
-        this.context.CurrentThristLevel -= this.ThristSpeed * delta;
-        this.context.delta = delta;
-
-        ai.Tick();
-
-        this.label.Text = this.context.CurrentThristLevel.ToString("#");
-    }
-}
-
-public class PrintAction<T> : IAction<T>
-{
-    private string text;
-
-    public PrintAction(string text)
-    {
-        this.text = text;
-    }
-
-    public void Enter(T context)
-    {
-    }
-
-    public void Execute(T context)
-    {
-        GD.Print(text);
-    }
-
-    public void Exit(T context)
-    {
+        return reasoner;
     }
 }
 
 public class DrinkUnitAction : IUnitAction
 {
     private readonly Person.Context context;
-    private readonly Well well;
+    private readonly Well.Context well;
 
-    public DrinkUnitAction(Person.Context context, Well well)
+    public DrinkUnitAction(Person.Context context, Well.Context well)
     {
         this.context = context;
         this.well = well;
