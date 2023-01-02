@@ -13,6 +13,11 @@ public partial class ArtificialWell
         public float CurrentAmount { get; set; }
 
         public bool IsDrinkable => BuildHP == MaxHP;
+        public override void BuildComplete()
+        {
+            base.BuildComplete();
+            this.MapContext.AddItemByType(Map.Context.MapItemType.Water, this);
+        }
 
         public float TryDrink(float amount)
         {
@@ -32,7 +37,7 @@ public partial class ArtificialWell
     {
         base._Process(delta);
 
-        if (this.myContext.IsDrinkable)
+        if (this.myContext.MaxHP == this.myContext.BuildHP)
         {
             this.sprite.Hide();
             this.sprite1.Show();
@@ -43,7 +48,7 @@ public partial class ArtificialWell
 
     public override void InitContext(Map.Context mapContext)
     {
-        this.context = this.context ?? new Context(10);
+        this.context = this.context ?? new Context(100);
         this.context.BlockingCells = new Vector2[]{
             Vector2.Up,
             Vector2.Down,

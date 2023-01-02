@@ -3,6 +3,7 @@ using Godot;
 using GodotAnalysers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 [SceneReference("Map.tscn")]
@@ -62,19 +63,72 @@ public partial class Map
 
         #endregion
 
-        public Context(int width, int height)
+        public Context(int width, int height, Func<Vector2, Vector2> worldToMap, Func<Vector2, Vector2> mapToWorld)
         {
             this.Map = new TileMapObject.Context[width, height];
             this.Width = width;
             this.Height = height;
+            this.WorldToMap = worldToMap;
+            this.MapToWorld = mapToWorld;
         }
 
         public readonly int Width;
         public readonly int Height;
         public readonly TileMapObject.Context[,] Map;
-        public Dictionary<TileMapObject.Context, Vector2> KnownPositions = new Dictionary<TileMapObject.Context, Vector2>();
-        public Func<Vector2, Vector2> MapToWorld;
-        public Func<Vector2, Vector2> WorldToMap;
+        private Dictionary<TileMapObject.Context, Vector2> KnownPositions = new Dictionary<TileMapObject.Context, Vector2>();
+        private Func<Vector2, Vector2> MapToWorld;
+        private Func<Vector2, Vector2> WorldToMap;
+
+        public enum MapItemType
+        {
+            Water,
+            Construction
+        }
+
+        public Dictionary<MapItemType, HashSet<TileMapObject.Context>> ItemsByType = new Dictionary<MapItemType, HashSet<TileMapObject.Context>>();
+
+        public void AddItemByType(MapItemType itemType, TileMapObject.Context item)
+        {
+            if (!ItemsByType.ContainsKey(itemType))
+            {
+                ItemsByType[itemType] = new HashSet<TileMapObject.Context>();
+            }
+
+            ItemsByType[itemType].Add(item);
+        }
+
+        public void RemoveItemByType(MapItemType itemType, TileMapObject.Context item)
+        {
+            if (!ItemsByType.ContainsKey(itemType))
+            {
+                ItemsByType[itemType] = new HashSet<TileMapObject.Context>();
+                return;
+            }
+
+            ItemsByType[itemType].Remove(item);
+        }
+
+        public TileMapObject.Context FindClosestItemByType(MapItemType itemType, Vector2 position)
+        {
+            if (!ItemsByType.ContainsKey(itemType))
+            {
+                ItemsByType[itemType] = new HashSet<TileMapObject.Context>();
+                return null;
+            }
+
+            return ItemsByType[itemType].OrderBy(a => (a.Position - position).LengthSquared()).FirstOrDefault();
+        }
+
+        public bool ItemByTypeExists(MapItemType itemType)
+        {
+            if (!ItemsByType.ContainsKey(itemType))
+            {
+                ItemsByType[itemType] = new HashSet<TileMapObject.Context>();
+                return false;
+            }
+
+            return ItemsByType[itemType].Any();
+        }
 
         public void UpdatePosition(TileMapObject.Context context)
         {
@@ -86,7 +140,7 @@ public partial class Map
             this.AddPosition(context);
         }
 
-        public void AddPosition(TileMapObject.Context context)
+        public Vector2 AddPosition(TileMapObject.Context context)
         {
             System.Diagnostics.Debug.Assert(!this.KnownPositions.ContainsKey(context));
             var newPos = this.WorldToMap(context.Position);
@@ -97,6 +151,8 @@ public partial class Map
                 System.Diagnostics.Debug.Assert(this.Map[(int)cell.x, (int)cell.y] == null);
                 this.Map[(int)cell.x, (int)cell.y] = context;
             }
+
+            return this.MapToWorld(newPos);
         }
 
         public void RemovePosition(TileMapObject.Context context)
@@ -136,6 +192,19 @@ public partial class Map
             return sb.ToString();
         }
 
+        public List<Vector2> FindPath(Vector2 from, Vector2 to)
+        {
+            var fromMap = this.WorldToMap(from);
+            var toMap = this.WorldToMap(to);
+
+            var pathMap = AStarPathfinder.Search(this, fromMap, toMap);
+            if (pathMap == null)
+            {
+                return pathMap;
+            }
+
+            return pathMap.Select(a => this.MapToWorld(a)).ToList();
+        }
     }
 
     public override void _Ready()
@@ -146,9 +215,7 @@ public partial class Map
 
     public void InitContext(int width, int height)
     {
-        this.context = this.context ?? new Context(width, height);
-        this.context.WorldToMap = this.WorldToMap;
-        this.context.MapToWorld = (map) => this.MapToWorld(map);
+        this.context = this.context ?? new Context(width, height, this.WorldToMap, (map) => this.MapToWorld(map));
 
         foreach (var child in GetChildren())
         {

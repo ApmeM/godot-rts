@@ -57,6 +57,7 @@ public partial class Well
     {
         this.context = this.context ?? new Context();
         base.InitContext(mapContext);
+        mapContext.AddItemByType(Map.Context.MapItemType.Water, this.context);
     }
 
 }

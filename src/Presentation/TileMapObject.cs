@@ -13,16 +13,16 @@ public partial class TileMapObject
         public Map.Context MapContext { get; set; }
         public Vector2[] BlockingCells { get; set; } = new Vector2[0];
 
-        public void Move(Vector2 delta)
+        public void ChangePosition(Vector2 newPosition)
         {
-            this.Position += delta;
+            this.Position = newPosition;
             this.MapContext.UpdatePosition(this);
         }
 
         public void InitPosition(Vector2 position)
         {
-            this.Position = this.MapContext.MapToWorld(this.MapContext.WorldToMap(position));
-            this.MapContext.AddPosition(this);
+            this.Position = position;
+            this.Position = this.MapContext.AddPosition(this);
         }
     }
 
@@ -42,7 +42,7 @@ public partial class TileMapObject
     public virtual void InitContext(Map.Context mapContext)
     {
         this.context = this.context ?? new Context();
-        this.context.MapContext = this.GetParent<Map>().context;
+        this.context.MapContext = mapContext;
         this.context.InitPosition(this.Position);
     }
 }

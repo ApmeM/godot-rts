@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using BrainAI.Pathfinding;
 using Godot;
 using GodotAnalysers;
 using BrainAI.AI.UtilityAI;
@@ -9,13 +8,9 @@ using System.Collections.Generic;
 [SceneReference("Person.tscn")]
 public partial class Person
 {
-    public class Context : TileMapObject.Context, IPrintActionContext, IMoveActionContext, IDrinkActionContext, IBuildActionContext
+    public class Context : TileMapObject.Context
     {
-        public IBuildItemActionContext Build { get; set; }
         public float BuildSpeed { get; set; } = 1;
-
-        public IDrinkFromActionContext Well { get; set; }
-
 
         public string CurrentActionName { get; set; }
 
@@ -26,6 +21,8 @@ public partial class Person
         public float ThinkTimeout { get; set; }
 
         public List<Vector2> Path { get; set; }
+
+        public Vector2 PathTarget { get; set; }
 
         public float ThristThreshold { get; set; } = 50;
 
@@ -39,12 +36,33 @@ public partial class Person
 
         public float DrinkSpeed { get; set; } = 50f;
 
-        public void Drink(float amount)
+        public void Print(string text)
         {
-            this.CurrentThristLevel += amount;
-            if (Math.Abs(this.MaxThristLevel - this.CurrentThristLevel) < 0.1f)
+            this.CurrentActionName = text;
+            // Godot.GD.Print(text);
+        }
+
+        public void Drink()
+        {
+            var toDrink = Math.Min(this.DrinkSpeed * this.Delta, this.MaxThristLevel - this.CurrentThristLevel);
+            var water = (IDrinkFromActionContext)this.MapContext.FindClosestItemByType(Map.Context.MapItemType.Water, this.Position);
+            this.CurrentThristLevel += water.TryDrink(toDrink);
+        }
+
+        public void Move()
+        {
+            var current = this.Position;
+            var destination = this.Path[0];
+            var path = destination - current;
+            var motion = path.Normalized() * this.MoveSpeed * this.Delta;
+            if (path.LengthSquared() > motion.LengthSquared())
             {
-                this.Well = null;
+                this.ChangePosition(current + motion);
+            }
+            else
+            {
+                this.ChangePosition(destination);
+                this.Path.RemoveAt(0);
             }
         }
 
@@ -52,6 +70,21 @@ public partial class Person
         {
             this.CurrentThristLevel -= this.ThristSpeed * delta;
             this.Delta = delta;
+        }
+
+        public void SetMoveTarget(Vector2 target)
+        {
+            if (target != PathTarget)
+            {
+                this.Path = this.MapContext.FindPath(this.Position, target);
+                this.PathTarget = target;
+            }
+        }
+
+        public void Build()
+        {
+            var construction = (IBuildItemActionContext)this.MapContext.FindClosestItemByType(Map.Context.MapItemType.Construction, this.Position);
+            construction.Build(this.BuildSpeed * this.Delta);
         }
     }
 
@@ -95,105 +128,83 @@ public partial class Person
 
         reasoner.Add(
             new MultAppraisal<Context>(
-                new ActionAppraisal<Context>(a => a.CurrentThristLevel <= 0 ? 1 : 0),
-                new FixedAppraisal<Context>(1000)
-                ),
-                new PrintAction<Context>("Dying"),
-                new ActionAction<Context>(a =>
-                {
-                    a.IsDead = true;
-                }));
+                new ActionAppraisal<Context>(a => a.CurrentThristLevel <= 0 ? 1 : 0)
+            ),
+            new ActionAction<Context>(a => a.Print("Dying")),
+            new ActionAction<Context>(a =>
+            {
+                a.IsDead = true;
+            }));
 
         reasoner.Add(
             new MultAppraisal<Context>(
                 new ActionAppraisal<Context>(a => a.CurrentThristLevel < a.ThristThreshold ? 1 : 0),
-                new ActionAppraisal<Context>(a => a.Well == null ? 1 : 0)
-                ),
-                new PrintAction<Context>("Looking for water"),
-                new ActionAction<Context>(a =>
+                new ActionAppraisal<Context>(a => a.MapContext.ItemByTypeExists(Map.Context.MapItemType.Water) ? 1 : 0),
+                new ActionAppraisal<Context>(a => a.MapContext.FindClosestItemByType(Map.Context.MapItemType.Water, a.Position).Position != Position ? 1 : 0)
+            ),
+            new ActionAction<Context>(a => a.Print("Going to Drink")),
+            new ActionAction<Context>(a =>
+            {
+                a.SetMoveTarget(a.MapContext.FindClosestItemByType(Map.Context.MapItemType.Water, a.Position).Position);
+                a.Move();
+            }));
+
+        reasoner.Add(
+            new MultAppraisal<Context>(
+                new ActionAppraisal<Context>(a => a.CurrentThristLevel < a.MaxThristLevel - 1 ? 1 : 0),
+                new ActionAppraisal<Context>(a => a.MapContext.ItemByTypeExists(Map.Context.MapItemType.Water) ? 1 : 0),
+                new ActionAppraisal<Context>(a => a.MapContext.FindClosestItemByType(Map.Context.MapItemType.Water, a.Position).Position == Position ? 1 : 0)
+            ),
+            new ActionAction<Context>(a => a.Print("Drinking")),
+            new ActionAction<Context>(a => a.Drink()));
+
+        reasoner.Add(
+            new MultAppraisal<Context>(
+                new ActionAppraisal<Context>(a => a.MapContext.ItemByTypeExists(Map.Context.MapItemType.Construction) ? 1 : 0),
+                new ActionAppraisal<Context>(a => a.MapContext.FindClosestItemByType(Map.Context.MapItemType.Construction, a.Position).Position != Position ? 1 : 0)
+            ),
+            new ActionAction<Context>(a => a.Print("Going to build")),
+            new ActionAction<Context>(
+                a =>
                 {
-                    a.Well = a.MapContext.KnownPositions.Keys.OfType<IDrinkFromActionContext>().Where(b => b.IsDrinkable).OrderBy(b => (b.Position - a.Position).LengthSquared()).First();
-                    var personMap = a.MapContext.WorldToMap(this.Position);
-                    var wellMap = a.MapContext.WorldToMap(a.Well.Position);
-                    a.Path = AStarPathfinder.Search(a.MapContext, personMap, wellMap);
+                    a.SetMoveTarget(a.MapContext.FindClosestItemByType(Map.Context.MapItemType.Construction, a.Position).Position);
+                    a.Move();
                 }));
 
         reasoner.Add(
             new MultAppraisal<Context>(
-                new ActionAppraisal<Context>(a => a.Well != null ? 1 : 0),
-                new ActionAppraisal<Context>(a => a.Well.Position != a.Position ? 1 : 0)
-                ),
-                new PrintAction<Context>("Moving for water"),
-                new MoveAction<Context>());
-
-        reasoner.Add(
-            new MultAppraisal<Context>(
-                new ActionAppraisal<Context>(a => a.Well != null ? 1 : 0),
-                new ActionAppraisal<Context>(a => a.Well.Position == a.Position ? 1 : 0)
-                ),
-                new PrintAction<Context>("Drinking for water"),
-                new DrinkAction<Context>());
-
-        reasoner.Add(
-            new MultAppraisal<Context>(
-                new ActionAppraisal<Context>(a => a.MapContext.KnownPositions.Keys.OfType<Construction.Context>().Any(b => b.BuildHP != b.MaxHP) ? 1 : 0),
-                new ActionAppraisal<Context>(a => a.Build == null ? 1 : 0)
-                ),
-                new PrintAction<Context>("Going to build"),
-                new ActionAction<Context>(
-                    a =>
-                    {
-                        a.Build = a.MapContext.KnownPositions.Keys.OfType<Construction.Context>().First(b => b.BuildHP != b.MaxHP);
-
-                        var targetMap = a.MapContext.WorldToMap(a.Build.Position);
-                        var personMap = a.MapContext.WorldToMap(this.Position);
-                        a.Path = AStarPathfinder.Search(a.MapContext, personMap, targetMap);
-                    }));
-
-        reasoner.Add(
-            new MultAppraisal<Context>(
-                new ActionAppraisal<Context>(a => a.Build != null ? 1 : 0),
-                new ActionAppraisal<Context>(a => a.Build.Position != a.Position ? 1 : 0)
-                ),
-                new PrintAction<Context>("Moving for build"),
-                new MoveAction<Context>());
-
-        reasoner.Add(
-            new MultAppraisal<Context>(
-                new ActionAppraisal<Context>(a => a.Build != null ? 1 : 0),
-                new ActionAppraisal<Context>(a => a.Build.Position == a.Position ? 1 : 0)
-                ),
-                new PrintAction<Context>("Building for build"),
-                new BuildAction<Context>());
+                new ActionAppraisal<Context>(a => a.MapContext.ItemByTypeExists(Map.Context.MapItemType.Construction) ? 1 : 0),
+                new ActionAppraisal<Context>(a => a.MapContext.FindClosestItemByType(Map.Context.MapItemType.Construction, a.Position).Position == Position ? 1 : 0)
+            ),
+            new ActionAction<Context>(a => a.Print("Building")),
+            new ActionAction<Context>(a => a.Build()));
 
         reasoner.Add(
             new MultAppraisal<Context>(
                 new ActionAppraisal<Context>(a => a.Path == null || !a.Path.Any() ? 1 : 0)
-                ),
-                new PrintAction<Context>("Thinking"),
-                new ActionAction<Context>(
-                    a => { a.ThinkTimeout = this.r.Next(3); },
-                    a =>
+            ),
+            new ActionAction<Context>(a => a.Print("Thinking")),
+            new ActionAction<Context>(
+                a => { a.ThinkTimeout = this.r.Next(3); },
+                a =>
+                {
+                    a.ThinkTimeout -= a.Delta;
+                    if (a.ThinkTimeout > 0)
                     {
-                        a.ThinkTimeout -= a.Delta;
-                        if (a.ThinkTimeout > 0)
-                        {
-                            return;
-                        }
+                        return;
+                    }
 
-                        var targetMap = new Vector2(r.Next(25), r.Next(25));
-                        var personMap = a.MapContext.WorldToMap(this.Position);
-                        a.Path = AStarPathfinder.Search(a.MapContext, personMap, targetMap);
-                    },
-                    a => { }));
+                    a.SetMoveTarget(this.Position + new Vector2(r.Next(250) - 125, r.Next(250) - 125));
+                },
+                a => { }));
 
         reasoner.Add(
             new MultAppraisal<Context>(
                 new FixedAppraisal<Context>(1),
                 new ActionAppraisal<Context>(a => a.Path != null && a.Path.Any() ? 1 : 0)
-                ),
-                new PrintAction<Context>("Walking"),
-                new MoveAction<Context>());
+            ),
+            new ActionAction<Context>(a => a.Print("Walking")),
+            new ActionAction<Context>(a => a.Move()));
 
         return reasoner;
     }

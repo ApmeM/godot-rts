@@ -14,6 +14,11 @@ public partial class Construction
         public float BuildHP { get; private set; }
         public float HP { get; private set; }
 
+        public virtual void BuildComplete()
+        {
+
+        }
+
         public void Build(float hp)
         {
             BuildHP += hp;
@@ -23,6 +28,8 @@ public partial class Construction
                 var delta = BuildHP - MaxHP;
                 BuildHP -= delta;
                 HP -= delta;
+                this.MapContext.RemoveItemByType(Map.Context.MapItemType.Construction, this);
+                BuildComplete();
             }
         }
     }
@@ -46,5 +53,6 @@ public partial class Construction
     {
         this.context = this.context ?? new Context(1);
         base.InitContext(mapContext);
+        mapContext.AddItemByType(Map.Context.MapItemType.Construction, this.context);
     }
 }
