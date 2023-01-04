@@ -29,12 +29,12 @@ public partial class Map
 
         public bool IsNodeInBounds(Vector2 node)
         {
-            return 0 <= node.x && node.x < this.Map.GetLength(0) && 0 <= node.y && node.y < this.Map.GetLength(1);
+            return true;
         }
 
         public bool IsNodePassable(Vector2 node)
         {
-            return this.Map[(int)node.x, (int)node.y] == null;
+            return !this.Map.ContainsKey(node);
         }
 
         public IEnumerable<Vector2> GetNeighbors(Vector2 node)
@@ -63,18 +63,13 @@ public partial class Map
 
         #endregion
 
-        public Context(int width, int height, Func<Vector2, Vector2> worldToMap, Func<Vector2, Vector2> mapToWorld)
+        public Context(Func<Vector2, Vector2> worldToMap, Func<Vector2, Vector2> mapToWorld)
         {
-            this.Map = new TileMapObject.Context[width, height];
-            this.Width = width;
-            this.Height = height;
             this.WorldToMap = worldToMap;
             this.MapToWorld = mapToWorld;
         }
 
-        public readonly int Width;
-        public readonly int Height;
-        public readonly TileMapObject.Context[,] Map;
+        public readonly Dictionary<Vector2, TileMapObject.Context> Map = new Dictionary<Vector2, TileMapObject.Context>();
         private Dictionary<TileMapObject.Context, Vector2> KnownPositions = new Dictionary<TileMapObject.Context, Vector2>();
         private Func<Vector2, Vector2> MapToWorld;
         private Func<Vector2, Vector2> WorldToMap;
@@ -148,8 +143,8 @@ public partial class Map
             foreach (var dir in context.BlockingCells)
             {
                 var cell = newPos + dir;
-                System.Diagnostics.Debug.Assert(this.Map[(int)cell.x, (int)cell.y] == null);
-                this.Map[(int)cell.x, (int)cell.y] = context;
+                System.Diagnostics.Debug.Assert(!this.Map.ContainsKey(cell));
+                this.Map[cell] = context;
             }
 
             return this.MapToWorld(newPos);
@@ -164,27 +159,38 @@ public partial class Map
             foreach (var dir in context.BlockingCells)
             {
                 var cell = prevPos + dir;
-                System.Diagnostics.Debug.Assert(this.Map[(int)cell.x, (int)cell.y] != null);
-                this.Map[(int)cell.x, (int)cell.y] = null;
+                System.Diagnostics.Debug.Assert(this.Map.ContainsKey(cell));
+                this.Map[cell] = null;
             }
         }
 
         public void ClearMap()
         {
-            for (var x = 0; x < this.Map.GetLength(0); x++)
-                for (var y = 0; y < this.Map.GetLength(1); y++)
-                    this.Map[x, y] = null;
+            this.Map.Clear();
             this.KnownPositions.Clear();
         }
 
         public override string ToString()
         {
-            var sb = new StringBuilder();
-            for (var x = 0; x < Map.GetLength(0); x++)
+            var minX = float.MaxValue;
+            var minY = float.MaxValue;
+            var maxX = float.MinValue;
+            var maxY = float.MinValue;
+
+            foreach (var cell in Map.Keys)
             {
-                for (var y = 0; y < Map.GetLength(1); y++)
+                minX = Math.Min(minX, cell.x);
+                minY = Math.Min(minY, cell.y);
+                maxX = Math.Max(maxX, cell.x);
+                maxY = Math.Max(maxY, cell.y);
+            }
+
+            var sb = new StringBuilder();
+            for (var x = minX; x <= maxX; x++)
+            {
+                for (var y = minY; y < maxY; y++)
                 {
-                    sb.Append(Map[x, y] == null ? "." : "#");
+                    sb.Append(Map.ContainsKey(new Vector2(x, y)) ? "#" : ".");
                 }
                 sb.AppendLine("");
             }
@@ -215,7 +221,7 @@ public partial class Map
 
     public void InitContext(int width, int height)
     {
-        this.context = this.context ?? new Context(width, height, this.WorldToMap, (map) => this.MapToWorld(map));
+        this.context = this.context ?? new Context(this.WorldToMap, (map) => this.MapToWorld(map));
 
         foreach (var child in GetChildren())
         {

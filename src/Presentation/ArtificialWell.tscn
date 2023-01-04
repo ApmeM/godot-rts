@@ -13,8 +13,10 @@ width = 8
 [node name="ArtificialWell" instance=ExtResource( 1 )]
 script = ExtResource( 2 )
 
+[node name="Sprite" parent="." index="0"]
+scale = Vector2( 6, 42 )
+
 [node name="Sprite1" type="Sprite" parent="." index="1"]
-visible = false
 rotation = 0.785398
 scale = Vector2( 6, 42 )
 texture = SubResource( 2 )
