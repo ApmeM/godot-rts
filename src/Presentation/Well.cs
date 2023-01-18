@@ -1,63 +1,41 @@
 using GodotAnalysers;
 using Godot;
+using LocomotorECS;
 
 [SceneReference("Well.tscn")]
 public partial class Well
 {
-    public class Context : TileMapObject.Context, IDrinkFromActionContext
-    {
-        public float MaxAmount = 100;
-
-        public float Regeneration = 10;
-
-        public float CurrentAmount { get; set; } = 50;
-
-        public bool IsDrinkable { get; set; } = true;
-
-        public void Tick(float delta)
-        {
-            if (CurrentAmount < MaxAmount)
-            {
-                CurrentAmount += delta * Regeneration;
-                if (CurrentAmount > MaxAmount)
-                {
-                    CurrentAmount = MaxAmount;
-                }
-            }
-        }
-
-        public float TryDrink(float amount)
-        {
-            var toDrink = Mathf.Min(amount, CurrentAmount);
-            CurrentAmount -= toDrink;
-            return toDrink;
-        }
-    }
-
-    private Context myContext => (Context)this.context;
+    public readonly Entity e = new Entity();
 
     public override void _Ready()
     {
         base._Ready();
         this.FillMembers();
-
-        this.AddToGroup(Groups.WaterToDrink);
     }
 
     public override void _Process(float delta)
     {
         base._Process(delta);
 
-        this.myContext.Tick(delta);
-
-        this.label.Text = this.myContext.CurrentAmount.ToString("#");
+         this.label.Text = this.e.GetComponent<DrinkableComponent>().CurrentAmount.ToString("#");
     }
 
-    public override void InitContext(Map.Context mapContext)
+    public override void _EnterTree()
     {
-        this.context = this.context ?? new Context();
-        base.InitContext(mapContext);
-        mapContext.AddItemByType(Map.Context.MapItemType.Water, this.context);
+        base._EnterTree();
+        
+        e.GetOrCreateComponent<Node2DComponent>().Node = this;
+        e.GetOrCreateComponent<PositionComponent>().Position = this.Position;
+        e.GetOrCreateComponent<DrinkableComponent>().CurrentAmount = 50;
+        e.GetOrCreateComponent<DrinkRegenerationComponent>().MaxAmount = 100;
+        e.GetOrCreateComponent<DrinkRegenerationComponent>().Regeneration = 10;
+        this.GetParent<Map>().el.Add(e);
     }
 
+    public override void _ExitTree()
+    {
+        base._ExitTree();
+
+        this.GetParent<Map>().el.Remove(e);
+    }
 }

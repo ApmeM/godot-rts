@@ -1,15 +1,11 @@
 using Godot;
 using GodotAnalysers;
+using LocomotorECS;
 
 [SceneReference("Tree.tscn")]
 public partial class Tree
 {
-    public class Context : TileMapObject.Context
-    {
-    }
-
-    private Context myContext => (Context)this.context;
-
+    public readonly Entity e = new Entity();
 
     public override void _Ready()
     {
@@ -17,10 +13,19 @@ public partial class Tree
         this.FillMembers();
     }
 
-    public override void InitContext(Map.Context mapContext)
+    public override void _EnterTree()
     {
-        this.context = this.context ?? new Context();
-        this.context.BlockingCells = new Vector2[] { Vector2.Zero };
-        base.InitContext(mapContext);
+        base._EnterTree();
+
+        e.GetOrCreateComponent<Node2DComponent>().Node = this;
+        e.GetOrCreateComponent<PositionComponent>().Position = this.Position;
+        e.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[] { Vector2.Zero };
+        this.GetParent<Map>().el.Add(e);
+    }
+
+    public override void _ExitTree()
+    {
+        base._ExitTree();
+        this.GetParent<Map>().el.Remove(e);
     }
 }
