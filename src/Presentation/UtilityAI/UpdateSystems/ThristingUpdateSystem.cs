@@ -12,9 +12,9 @@ public class ThristingUpdateSystem : MatcherEntitySystem
 
         var thristing = entity.GetComponent<ThristingComponent>();
 
-        thristing.CurrentThristLevel -= thristing.ThristSpeed * delta;
+        thristing.CurrentThristing -= thristing.ThristSpeed * delta;
 
-        if (thristing.CurrentThristLevel < 0)
+        if (thristing.CurrentThristing < 0)
         {
             var dying = entity.GetComponent<DyingComponent>();
             dying.IsDead = true;

@@ -7,9 +7,15 @@ public class PersonUpdateSystem : MatcherEntitySystem
 {
     private MatcherEntityList waterSources;
     private MatcherEntityList buildSources;
+    private MatcherEntityList restSources;
     private Random r = new Random();
 
-    public PersonUpdateSystem() : base(new Matcher().All<PersonComponent>().All<MovingComponent>().All<PositionComponent>())
+    public PersonUpdateSystem() : base(new Matcher()
+            .All<PersonComponent>()
+            .All<MovingComponent>()
+            .All<PositionComponent>()
+            .Exclude<SleepComponent>()
+            .Exclude<DrinkComponent>())
     {
     }
 
@@ -21,7 +27,7 @@ public class PersonUpdateSystem : MatcherEntitySystem
         var moving = entity.GetComponent<MovingComponent>();
 
         var thristing = entity.GetComponent<ThristingComponent>();
-        if (thristing != null)
+        if (thristing != null && thristing.CurrentThristing < thristing.ThristThreshold)
         {
             var closestSource = waterSources.Entities
                     .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
@@ -30,26 +36,44 @@ public class PersonUpdateSystem : MatcherEntitySystem
             {
                 var closestWater = closestSource.GetComponent<PositionComponent>()?.Position ?? Godot.Vector2.Inf;
 
-                if (position.Position != closestWater && thristing.CurrentThristLevel < thristing.ThristThreshold)
+                if (position.Position != closestWater)
                 {
                     entity.GetComponent<PrintComponent>().Text = "Going to drink";
                     moving.PathTarget = closestWater;
-                    return;
                 }
-
-                if (position.Position == closestWater && thristing.CurrentThristLevel < thristing.MaxThristLevel)
+                else
                 {
-                    var drinkable = closestSource.GetComponent<DrinkableComponent>();
-                    var toDrink = Mathf.Min(Mathf.Min(thristing.DrinkSpeed * delta, thristing.MaxThristLevel - thristing.CurrentThristLevel), drinkable.CurrentAmount);
-                    drinkable.CurrentAmount -= toDrink;
-                    thristing.CurrentThristLevel += toDrink;
-
-                    if (thristing.CurrentThristLevel < thristing.MaxThristLevel)
-                    {
-                        entity.GetComponent<PrintComponent>().Text = "Drinking";
-                        return;
-                    }
+                    entity.GetComponent<PrintComponent>().Text = "Drinking";
+                    moving.Disable();
+                    entity.GetOrCreateComponent<DrinkComponent>().Enable();
                 }
+                return;
+            }
+        }
+
+        var fatigue = entity.GetComponent<FatigueComponent>();
+        if (fatigue != null && fatigue.CurrentFatigue > fatigue.FatigueThreshold)
+        {
+            var closestSource = restSources.Entities
+                    .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
+                    .FirstOrDefault();
+            if (closestSource != null)
+            {
+                var closestRest = closestSource.GetComponent<PositionComponent>()?.Position ?? Godot.Vector2.Inf;
+
+                if (position.Position != closestRest)
+                {
+                    entity.GetComponent<PrintComponent>().Text = "Going to rest";
+                    moving.PathTarget = closestRest;
+                }
+                else
+                {
+                    entity.GetComponent<PrintComponent>().Text = "Sleeping";
+                    moving.Disable();
+                    entity.GetOrCreateComponent<SleepComponent>().Enable();
+                    entity.GetOrCreateComponent<ThristingComponent>()?.Disable();
+                }
+                return;
             }
         }
 
@@ -70,7 +94,7 @@ public class PersonUpdateSystem : MatcherEntitySystem
                     return;
                 }
 
-                if (position.Position == closestConstruction && thristing.CurrentThristLevel < thristing.MaxThristLevel)
+                if (position.Position == closestConstruction && thristing.CurrentThristing < thristing.MaxThristLevel)
                 {
                     entity.GetComponent<PrintComponent>().Text = "Building";
                     var construction = closestSource.GetComponent<ConstructionComponent>();
@@ -117,6 +141,7 @@ public class PersonUpdateSystem : MatcherEntitySystem
     {
         this.waterSources = new MatcherEntityList(entityList, new Matcher().All<DrinkableComponent>().All<PositionComponent>());
         this.buildSources = new MatcherEntityList(entityList, new Matcher().All<ConstructionComponent>().All<PositionComponent>());
+        this.restSources = new MatcherEntityList(entityList, new Matcher().All<RestComponent>().All<PositionComponent>());
         return base.FilterEntityList(entityList);
     }
 }

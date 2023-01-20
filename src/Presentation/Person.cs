@@ -21,7 +21,9 @@ public partial class Person
     {
         base._Process(delta);
 
-         this.label.Text = this.e.GetComponent<PrintComponent>().Text + " " + this.e.GetComponent<ThristingComponent>().CurrentThristLevel.ToString("#");
+         this.label.Text = this.e.GetComponent<PrintComponent>().Text + "\n" + 
+            "Thristing: " + this.e.GetComponent<ThristingComponent>().CurrentThristing.ToString("#") + "\n" +
+            "Fatigue: " + this.e.GetComponent<FatigueComponent>().CurrentFatigue.ToString("#") + "\n";
     }
 
     public override void _EnterTree()
@@ -36,6 +38,9 @@ public partial class Person
         e.GetOrCreateComponent<PrintComponent>();
         e.GetOrCreateComponent<DyingComponent>();
         e.GetOrCreateComponent<BuilderComponent>();
+        e.GetOrCreateComponent<FatigueComponent>().MaxFatigue = 100;
+        e.GetOrCreateComponent<FatigueComponent>().FatigueThreshold = 30;
+        e.GetOrCreateComponent<FatigueComponent>().FatigueSpeed = 1f;
 
         this.GetParent<Map>().el.Add(e);
     }

@@ -20,9 +20,12 @@ public partial class Map
 
         this.esl = new EntitySystemList(el);
         this.esl.Add(new DrinkRegenerationUpdateSystem());
+        this.esl.Add(new DrinkUpdateSystem());
+        this.esl.Add(new FatiguingUpdateSystem());
+        this.esl.Add(new MovingUpdateSystem(this.context));
         this.esl.Add(new PersonUpdateSystem());
         this.esl.Add(new PositionUpdateSystem(this.context));
-        this.esl.Add(new MovingUpdateSystem(this.context));
+        this.esl.Add(new SleepingUpdateSystem());
         this.esl.Add(new ThristingUpdateSystem());
 
         this.render_esl = new EntitySystemList(el);

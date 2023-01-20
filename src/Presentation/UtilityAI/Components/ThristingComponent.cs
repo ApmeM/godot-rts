@@ -4,7 +4,7 @@ public class ThristingComponent : Component
 {
     public float ThristThreshold { get; set; } = 50;
 
-    public float CurrentThristLevel { get; set; } = 100;
+    public float CurrentThristing { get; set; } = 100;
 
     public float MaxThristLevel { get; set; } = 100;
 
