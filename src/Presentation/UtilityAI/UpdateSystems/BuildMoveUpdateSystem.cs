@@ -30,6 +30,7 @@ public class BuildMoveUpdateSystem : MatcherEntitySystem
         var position = entity.GetComponent<PositionComponent>();
 
         var closestSource = constructionSource.Entities
+                            .Where(a => a.GetComponent<ConstructionComponent>().CurrentBuilders.Contains(entity) || a.GetComponent<ConstructionComponent>().CurrentBuilders.Count < a.GetComponent<ConstructionComponent>().MaxNumberOfBuilders)
                             .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
                             .FirstOrDefault();
 

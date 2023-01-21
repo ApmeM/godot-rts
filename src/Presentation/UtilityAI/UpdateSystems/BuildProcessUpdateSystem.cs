@@ -28,20 +28,27 @@ public class BuildProcessUpdateSystem : MatcherEntitySystem
         base.DoAction(entity, delta);
 
         var position = entity.GetComponent<PositionComponent>();
+        var building = entity.GetOrCreateComponent<BuildingComponent>();
 
         var closestSource = constructionSource.Entities
+                            .Where(a => a.GetComponent<ConstructionComponent>().CurrentBuilders.Contains(entity) || a.GetComponent<ConstructionComponent>().CurrentBuilders.Count < a.GetComponent<ConstructionComponent>().MaxNumberOfBuilders)
                             .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
                             .FirstOrDefault();
         var closestConstruction = closestSource?.GetComponent<PositionComponent>()?.Position ?? Godot.Vector2.Inf;
 
         if (position.Position != closestConstruction)
         {
-            entity.GetOrCreateComponent<BuildingComponent>().Disable();
+            building.SelectedConstruction?.GetComponent<ConstructionComponent>()?.CurrentBuilders.Remove(entity);
+            building.SelectedConstruction = null;
+            building.Disable();
             return;
         }
 
-        entity.GetOrCreateComponent<BuildingComponent>().Enable();
         var construction = closestSource.GetComponent<ConstructionComponent>();
+        
+        building.Enable();
+        building.SelectedConstruction = closestSource;
+        construction.CurrentBuilders.Add(entity);
 
         if (construction.BuildProgress >= 1)
         {

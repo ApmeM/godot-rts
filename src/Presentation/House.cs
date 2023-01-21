@@ -29,6 +29,7 @@ public partial class House
             Vector2.Right + Vector2.Down,
         };
         e.GetOrCreateComponent<HPComponent>().MaxHP = 100;
+        e.GetOrCreateComponent<ConstructionComponent>().MaxNumberOfBuilders = 2;
         e.GetOrCreateComponent<ConstructionComponent>().ConstructionDone = (e) =>
         {
             e.GetOrCreateComponent<RestComponent>().Regeneration = 20;
@@ -53,10 +54,12 @@ public partial class House
         {
             this.sprite.Hide();
             this.sprite1.Show();
+            this.label.Text = "";
         }
         else
         {
-            this.label.Text = (construction.BuildProgress * 100).ToString("#") + "%";
+            this.label.Text = (construction.BuildProgress * 100).ToString("#") + "%\n" +
+                $"{construction.CurrentBuilders.Count} / {construction.MaxNumberOfBuilders}";
         }
     }
 }

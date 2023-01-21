@@ -29,6 +29,7 @@ public partial class ArtificialWell
             Vector2.Right + Vector2.Down,
         };
         e.GetOrCreateComponent<HPComponent>().MaxHP = 100;
+        e.GetOrCreateComponent<ConstructionComponent>().MaxNumberOfBuilders = 1;
         e.GetOrCreateComponent<ConstructionComponent>().ConstructionDone = (e) =>
         {
             e.GetOrCreateComponent<DrinkableComponent>().CurrentAmount = 0;
@@ -55,10 +56,13 @@ public partial class ArtificialWell
         {
             this.sprite.Hide();
             this.sprite1.Show();
+
+            this.label.Text = this.e.GetComponent<DrinkableComponent>().CurrentAmount.ToString("#");
         }
         else
         {
-            this.label.Text = (construction.BuildProgress * 100).ToString("#") + "%";
+            this.label.Text = (construction.BuildProgress * 100).ToString("#") + "%\n" +
+                $"{construction.CurrentBuilders.Count} / {construction.MaxNumberOfBuilders}";
         }
     }
 }

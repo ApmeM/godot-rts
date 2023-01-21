@@ -12,6 +12,9 @@ public class BuildingNoBuildSyncUpdateSystem : MatcherEntitySystem
     {
         base.DoAction(entity, delta);
 
-        entity.GetComponent<BuildingComponent>().Disable();
+        var building = entity.GetOrCreateComponent<BuildingComponent>();
+        building.SelectedConstruction?.GetComponent<ConstructionComponent>()?.CurrentBuilders.Remove(entity);
+        building.SelectedConstruction = null;
+        building.Disable();
     }
 }

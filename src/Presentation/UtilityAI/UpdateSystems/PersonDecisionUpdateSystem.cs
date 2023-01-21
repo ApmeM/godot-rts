@@ -42,7 +42,7 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
         }
 
         var biulder = entity.GetComponent<BuilderComponent>();
-        if (biulder != null && buildSources.Entities.Any() || entity.GetComponent<PersonDecisionBuildComponent>().Enabled)
+        if (biulder != null && buildSources.Entities.Where(a => a.GetComponent<ConstructionComponent>().CurrentBuilders.Contains(entity) || a.GetComponent<ConstructionComponent>().CurrentBuilders.Count < a.GetComponent<ConstructionComponent>().MaxNumberOfBuilders).Any() || entity.GetComponent<PersonDecisionBuildComponent>().Enabled)
         {
             entity.GetComponent<PrintComponent>().Text = "Build";
             entity.GetOrCreateComponent<PersonDecisionBuildComponent>().Enable();
