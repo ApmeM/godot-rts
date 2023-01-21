@@ -31,25 +31,24 @@ public class BuildProcessUpdateSystem : MatcherEntitySystem
         var building = entity.GetOrCreateComponent<BuildingComponent>();
 
         var closestSource = constructionSource.Entities
-                            .Where(a => a.GetComponent<ConstructionComponent>().CurrentBuilders.Contains(entity) || a.GetComponent<ConstructionComponent>().CurrentBuilders.Count < a.GetComponent<ConstructionComponent>().MaxNumberOfBuilders)
+                            .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
                             .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
                             .FirstOrDefault();
         var closestConstruction = closestSource?.GetComponent<PositionComponent>()?.Position ?? Godot.Vector2.Inf;
 
         if (position.Position != closestConstruction)
         {
-            building.SelectedConstruction?.GetComponent<ConstructionComponent>()?.CurrentBuilders.Remove(entity);
+            building.SelectedConstruction?.GetComponent<AvailabilityComponent>()?.CurrentBuilders.Remove(entity);
             building.SelectedConstruction = null;
             building.Disable();
             return;
         }
 
-        var construction = closestSource.GetComponent<ConstructionComponent>();
-        
         building.Enable();
         building.SelectedConstruction = closestSource;
-        construction.CurrentBuilders.Add(entity);
+        closestSource.GetOrCreateComponent<AvailabilityComponent>()?.CurrentBuilders.Add(entity);
 
+        var construction = closestSource.GetComponent<ConstructionComponent>();
         if (construction.BuildProgress >= 1)
         {
             construction.ConstructionDone?.Invoke(closestSource);
