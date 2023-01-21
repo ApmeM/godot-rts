@@ -27,8 +27,8 @@ public partial class Well
         e.GetOrCreateComponent<Node2DComponent>().Node = this;
         e.GetOrCreateComponent<PositionComponent>().Position = this.Position;
         e.GetOrCreateComponent<DrinkableComponent>().CurrentAmount = 50;
-        e.GetOrCreateComponent<DrinkRegenerationComponent>().MaxAmount = 100;
-        e.GetOrCreateComponent<DrinkRegenerationComponent>().Regeneration = 10;
+        e.GetOrCreateComponent<DrinkableRegenerationComponent>().MaxAmount = 100;
+        e.GetOrCreateComponent<DrinkableRegenerationComponent>().Regeneration = 10;
         this.GetParent<Map>().el.Add(e);
     }
 

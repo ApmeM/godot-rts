@@ -5,7 +5,10 @@ public class MovingUpdateSystem : MatcherEntitySystem
 {
     private readonly GameContext gameContext;
 
-    public MovingUpdateSystem(GameContext gameContext) : base(new Matcher().All<PositionComponent>().All<MovingComponent>())
+    public MovingUpdateSystem(GameContext gameContext) : base(new Matcher()
+        .All<PositionComponent>()
+        .All<MovingComponent>()
+        .Exclude<FatigueSleepComponent>())
     {
         this.gameContext = gameContext;
     }

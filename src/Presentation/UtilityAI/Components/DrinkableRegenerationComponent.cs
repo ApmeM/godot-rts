@@ -1,6 +1,6 @@
 using LocomotorECS;
 
-public class DrinkRegenerationComponent : Component
+public class DrinkableRegenerationComponent : Component
 {
     public float MaxAmount;
 

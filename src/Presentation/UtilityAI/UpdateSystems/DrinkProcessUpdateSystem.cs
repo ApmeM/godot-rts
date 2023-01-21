@@ -2,11 +2,15 @@ using System.Linq;
 using Godot;
 using LocomotorECS;
 
-public class DrinkUpdateSystem : MatcherEntitySystem
+public class DrinkProcessUpdateSystem : MatcherEntitySystem
 {
     private MatcherEntityList drinkSource;
 
-    public DrinkUpdateSystem() : base(new Matcher().All<DrinkComponent>().All<ThristingComponent>().All<PositionComponent>())
+    public DrinkProcessUpdateSystem() : base(new Matcher()
+        .All<PersonDecisionDrinkComponent>()
+        .All<DrinkThristingComponent>()
+        .All<PositionComponent>()
+        .Exclude<FatigueSleepComponent>())
     {
     }
 
@@ -14,20 +18,19 @@ public class DrinkUpdateSystem : MatcherEntitySystem
     {
         base.DoAction(entity, delta);
 
-        var thristing = entity.GetComponent<ThristingComponent>();
+        var thristing = entity.GetComponent<DrinkThristingComponent>();
         var position = entity.GetComponent<PositionComponent>();
 
         var closestSource = drinkSource.Entities
                             .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
                             .FirstOrDefault();
 
-        var closestRest = closestSource?.GetComponent<PositionComponent>()?.Position ?? Godot.Vector2.Inf;
-        if (position.Position != closestRest)
+        var closestWater = closestSource?.GetComponent<PositionComponent>()?.Position ?? Godot.Vector2.Inf;
+        if (position.Position != closestWater)
         {
-            entity.GetComponent<DrinkComponent>().Disable();
-            entity.GetComponent<MovingComponent>()?.Enable();
             return;
         }
+
         var drinkable = closestSource.GetComponent<DrinkableComponent>();
         var toDrink = Mathf.Min(Mathf.Min(thristing.DrinkSpeed * delta, thristing.MaxThristLevel - thristing.CurrentThristing), drinkable.CurrentAmount);
         drinkable.CurrentAmount -= toDrink;
@@ -36,8 +39,7 @@ public class DrinkUpdateSystem : MatcherEntitySystem
         if (thristing.CurrentThristing >= thristing.MaxThristLevel)
         {
             thristing.CurrentThristing = thristing.MaxThristLevel;
-            entity.GetComponent<DrinkComponent>().Disable();
-            entity.GetComponent<MovingComponent>()?.Enable();
+            entity.GetComponent<PersonDecisionDrinkComponent>().Disable();
         }
     }
 

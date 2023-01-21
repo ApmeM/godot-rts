@@ -1,6 +1,6 @@
 using LocomotorECS;
 
-public class ThristingComponent : Component
+public class DrinkThristingComponent : Component
 {
     public float ThristThreshold { get; set; } = 50;
 

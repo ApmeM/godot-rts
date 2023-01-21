@@ -1,11 +1,14 @@
 using System.Linq;
 using LocomotorECS;
 
-public class SleepingUpdateSystem : MatcherEntitySystem
+public class FatigueSleepingUpdateSystem : MatcherEntitySystem
 {
     private MatcherEntityList restSource;
 
-    public SleepingUpdateSystem() : base(new Matcher().All<SleepComponent>().All<FatigueComponent>().All<PositionComponent>())
+    public FatigueSleepingUpdateSystem() : base(new Matcher()
+        .All<FatigueSleepComponent>()
+        .All<FatigueComponent>()
+        .All<PositionComponent>())
     {
     }
 
@@ -34,9 +37,7 @@ public class SleepingUpdateSystem : MatcherEntitySystem
         if (fatigue.CurrentFatigue <= 0)
         {
             fatigue.CurrentFatigue = 0;
-            entity.GetComponent<SleepComponent>().Disable();
-            entity.GetComponent<ThristingComponent>()?.Enable();
-            entity.GetComponent<MovingComponent>().Enable();
+            entity.GetComponent<FatigueSleepComponent>().Disable();
             return;
         }
     }

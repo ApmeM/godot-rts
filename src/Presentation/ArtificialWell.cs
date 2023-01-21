@@ -32,8 +32,8 @@ public partial class ArtificialWell
         e.GetOrCreateComponent<ConstructionComponent>().ConstructionDone = (e) =>
         {
             e.GetOrCreateComponent<DrinkableComponent>().CurrentAmount = 0;
-            e.GetOrCreateComponent<DrinkRegenerationComponent>().Regeneration = 1000;
-            e.GetOrCreateComponent<DrinkRegenerationComponent>().MaxAmount = 1000;
+            e.GetOrCreateComponent<DrinkableRegenerationComponent>().Regeneration = 1000;
+            e.GetOrCreateComponent<DrinkableRegenerationComponent>().MaxAmount = 1000;
         };
         this.GetParent<Map>().el.Add(e);
     }

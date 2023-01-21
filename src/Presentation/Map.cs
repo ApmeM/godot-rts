@@ -19,14 +19,24 @@ public partial class Map
         this.el = new EntityList();
 
         this.esl = new EntitySystemList(el);
-        this.esl.Add(new DrinkRegenerationUpdateSystem());
-        this.esl.Add(new DrinkUpdateSystem());
-        this.esl.Add(new FatiguingUpdateSystem());
+        this.esl.Add(new BuildingNoBuildSyncUpdateSystem());
+        this.esl.Add(new BuildMoveUpdateSystem());
+        this.esl.Add(new BuildProcessUpdateSystem());
+        this.esl.Add(new DrinkableRegenerationUpdateSystem());
+        this.esl.Add(new DrinkMoveUpdateSystem());
+        this.esl.Add(new DrinkProcessUpdateSystem());
+        this.esl.Add(new DrinkThristingDeathUpdateSystem());
+        this.esl.Add(new DrinkThristingUpdateSystem());
+        this.esl.Add(new FatigueNoSleepThristingSyncUpdateSystem());
+        this.esl.Add(new FatigueProcessUpdateSystem());
+        this.esl.Add(new FatigueRestMoveUpdateSystem());
+        this.esl.Add(new FatigueSleepingUpdateSystem());
+        this.esl.Add(new FatigueSleepNoThristingSyncUpdateSystem());
+        this.esl.Add(new FatigueToSleepUpdateSystem());
         this.esl.Add(new MovingUpdateSystem(this.context));
-        this.esl.Add(new PersonUpdateSystem());
+        this.esl.Add(new PersonDecisionUpdateSystem());
         this.esl.Add(new PositionUpdateSystem(this.context));
-        this.esl.Add(new SleepingUpdateSystem());
-        this.esl.Add(new ThristingUpdateSystem());
+        this.esl.Add(new WalkingUpdateSystem());
 
         this.render_esl = new EntitySystemList(el);
         this.render_esl.Add(new Node2DPositionRenderSystem());

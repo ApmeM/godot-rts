@@ -22,7 +22,7 @@ public partial class Person
         base._Process(delta);
 
          this.label.Text = this.e.GetComponent<PrintComponent>().Text + "\n" + 
-            "Thristing: " + this.e.GetComponent<ThristingComponent>().CurrentThristing.ToString("#") + "\n" +
+            "Thristing: " + this.e.GetComponent<DrinkThristingComponent>().CurrentThristing.ToString("#") + "\n" +
             "Fatigue: " + this.e.GetComponent<FatigueComponent>().CurrentFatigue.ToString("#") + "\n";
     }
 
@@ -34,10 +34,11 @@ public partial class Person
         e.GetOrCreateComponent<Node2DComponent>().Node = this;
         e.GetOrCreateComponent<PositionComponent>().Position = this.Position;
         e.GetOrCreateComponent<MovingComponent>();
-        e.GetOrCreateComponent<ThristingComponent>();
+        e.GetOrCreateComponent<DrinkThristingComponent>();
         e.GetOrCreateComponent<PrintComponent>();
         e.GetOrCreateComponent<DyingComponent>();
         e.GetOrCreateComponent<BuilderComponent>();
+        e.GetOrCreateComponent<PersonDecisionWalkComponent>();
         e.GetOrCreateComponent<FatigueComponent>().MaxFatigue = 100;
         e.GetOrCreateComponent<FatigueComponent>().FatigueThreshold = 80;
         e.GetOrCreateComponent<FatigueComponent>().FatigueSpeed = 1f;
