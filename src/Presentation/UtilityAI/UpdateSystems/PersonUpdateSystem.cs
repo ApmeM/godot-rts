@@ -97,10 +97,12 @@ public class PersonUpdateSystem : MatcherEntitySystem
                 if (position.Position == closestConstruction && thristing.CurrentThristing < thristing.MaxThristLevel)
                 {
                     entity.GetComponent<PrintComponent>().Text = "Building";
+                    entity.GetOrCreateComponent<BuildingComponent>().Enable();
                     var construction = closestSource.GetComponent<ConstructionComponent>();
 
                     if (construction.BuildProgress >= 1)
                     {
+                        entity.GetComponent<BuildingComponent>().Disable();
                         entity.GetComponent<PrintComponent>().Text = "Built";
                         construction.ConstructionDone?.Invoke(closestSource);
                         construction.ConstructionDone = null;
@@ -114,7 +116,7 @@ public class PersonUpdateSystem : MatcherEntitySystem
                     {
                         hpToPct = 1f / hp.MaxHP;
                     }
-                    var buildProgress = builder.BuildSpeed * hpToPct;
+                    var buildProgress = builder.BuildSpeed * hpToPct * delta;
                     construction.BuildProgress += buildProgress;
                     if (hp != null)
                     {

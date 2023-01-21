@@ -28,16 +28,16 @@ public class SleepingUpdateSystem : MatcherEntitySystem
         else
         {
             var rest = closestSource.GetComponent<RestComponent>();
-            fatigue.CurrentFatigue -= rest.Regeneration;
+            fatigue.CurrentFatigue -= rest.Regeneration * delta;
+        }
 
-            if (fatigue.CurrentFatigue <= 0)
-            {
-                fatigue.CurrentFatigue = 0;
-                entity.GetComponent<SleepComponent>().Disable();
-                entity.GetComponent<ThristingComponent>()?.Enable();
-                entity.GetComponent<MovingComponent>().Enable();
-                return;
-            }
+        if (fatigue.CurrentFatigue <= 0)
+        {
+            fatigue.CurrentFatigue = 0;
+            entity.GetComponent<SleepComponent>().Disable();
+            entity.GetComponent<ThristingComponent>()?.Enable();
+            entity.GetComponent<MovingComponent>().Enable();
+            return;
         }
     }
 

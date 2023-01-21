@@ -11,8 +11,9 @@ public class FatiguingUpdateSystem : MatcherEntitySystem
         base.DoAction(entity, delta);
 
         var fatigue = entity.GetComponent<FatigueComponent>();
+        var isBuilding = entity.GetComponent<BuildingComponent>()?.Enabled ?? false;
 
-        fatigue.CurrentFatigue += fatigue.FatigueSpeed * delta;
+        fatigue.CurrentFatigue += fatigue.FatigueSpeed * delta * (isBuilding ? 5 : 1);
 
         if (fatigue.CurrentFatigue > fatigue.MaxFatigue)
         {

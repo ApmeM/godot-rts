@@ -39,8 +39,9 @@ public partial class Person
         e.GetOrCreateComponent<DyingComponent>();
         e.GetOrCreateComponent<BuilderComponent>();
         e.GetOrCreateComponent<FatigueComponent>().MaxFatigue = 100;
-        e.GetOrCreateComponent<FatigueComponent>().FatigueThreshold = 30;
+        e.GetOrCreateComponent<FatigueComponent>().FatigueThreshold = 80;
         e.GetOrCreateComponent<FatigueComponent>().FatigueSpeed = 1f;
+        e.GetOrCreateComponent<FatigueComponent>().DefaultRest = 5f;
 
         this.GetParent<Map>().el.Add(e);
     }
