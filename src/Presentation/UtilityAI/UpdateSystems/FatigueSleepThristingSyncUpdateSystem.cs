@@ -13,13 +13,11 @@ public class FatigueSleepThristingSyncUpdateSystem : MatcherEntitySystem
         base.OnEntityListChanged(added, changed, removed);
         foreach (var entity in added)
         {
-            Godot.GD.Print("Sleeping, no thristing.");
             entity.GetComponent<DrinkThristingComponent>()?.Disable();
         }
 
         foreach (var entity in removed)
         {
-            Godot.GD.Print("Waking up, thristing again.");
             entity.GetComponent<DrinkThristingComponent>()?.Enable();
         }
     }

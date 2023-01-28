@@ -35,10 +35,25 @@ position = Vector2( 128, 111 )
 position = Vector2( 85, 152 )
 
 [node name="Person3" parent="Map" instance=ExtResource( 2 )]
-position = Vector2( 160, 172 )
+position = Vector2( 318, 127 )
 
 [node name="Person4" parent="Map" instance=ExtResource( 2 )]
 position = Vector2( 93, 103 )
+
+[node name="Person5" parent="Map" instance=ExtResource( 2 )]
+position = Vector2( 232, 92 )
+
+[node name="Person6" parent="Map" instance=ExtResource( 2 )]
+position = Vector2( 248, 145 )
+
+[node name="Person7" parent="Map" instance=ExtResource( 2 )]
+position = Vector2( 338, 223 )
+
+[node name="Person8" parent="Map" instance=ExtResource( 2 )]
+position = Vector2( 323, 91 )
+
+[node name="Person9" parent="Map" instance=ExtResource( 2 )]
+position = Vector2( 264, 202 )
 
 [node name="Well" parent="Map" instance=ExtResource( 4 )]
 position = Vector2( 126, 151 )

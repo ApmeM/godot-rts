@@ -38,13 +38,13 @@ public partial class ArtificialWell
             Vector2.Right + Vector2.Up,
             Vector2.Right + Vector2.Down,
         };
-        entity.GetOrCreateComponent<HPComponent>().MaxHP = 100;
-        entity.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 1;
+        entity.GetOrCreateComponent<HPComponent>().MaxHP = 50;
+        entity.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 10;
         entity.GetOrCreateComponent<ConstructionComponent>().ConstructionDone = (e) =>
         {
             e.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 5;
             e.GetOrCreateComponent<DrinkableComponent>().CurrentAmount = 0;
-            e.GetOrCreateComponent<DrinkableRegenerationComponent>().Regeneration = 1000;
+            e.GetOrCreateComponent<DrinkableRegenerationComponent>().Regeneration = 25;
             e.GetOrCreateComponent<DrinkableRegenerationComponent>().MaxAmount = 1000;
         };
         return entity;

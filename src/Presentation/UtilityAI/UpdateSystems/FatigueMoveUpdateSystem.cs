@@ -30,13 +30,14 @@ public class FatigueMoveUpdateSystem : MatcherEntitySystem
         var position = entity.GetComponent<PositionComponent>();
 
         var closestSource = restSource.Entities
+                            .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
                             .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
                             .FirstOrDefault();
         var closestRest = closestSource?.GetComponent<PositionComponent>()?.Position ?? Godot.Vector2.Inf;
 
         if (position.Position == closestRest)
         {
-            entity.GetComponent<FatigueSleepComponent>().Enable();
+            entity.GetOrCreateComponent<FatigueSleepComponent>().Enable();
             return;
         }
 

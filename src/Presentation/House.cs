@@ -38,7 +38,7 @@ public partial class House
             Vector2.Right + Vector2.Down,
         };
         entity.GetOrCreateComponent<HPComponent>().MaxHP = 100;
-        entity.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 2;
+        entity.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 10;
         entity.GetOrCreateComponent<ConstructionComponent>().ConstructionDone = (e) =>
         {
             e.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 10;
@@ -52,16 +52,16 @@ public partial class House
         base._Process(delta);
 
         var construction = this.e.GetComponent<ConstructionComponent>();
+        var availability = this.e.GetComponent<AvailabilityComponent>();
 
         if (construction == null)
         {
             this.sprite.Hide();
             this.sprite1.Show();
-            this.label.Text = "";
+            this.label.Text = $"{availability.CurrentUsers.Count} / {availability.MaxNumberOfUsers}";
         }
         else
         {
-            var availability = this.e.GetComponent<AvailabilityComponent>();
             this.label.Text = (construction.BuildProgress * 100).ToString("#") + "%\n" +
                 $"{availability.CurrentUsers.Count} / {availability.MaxNumberOfUsers}";
         }

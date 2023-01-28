@@ -25,10 +25,10 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
         entity.GetOrCreateComponent<PersonDecisionWalkComponent>();
 
         var thristing = entity.GetComponent<DrinkThristingComponent>();
-        if (thristing != null && waterSources.Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any() && (
+        if (thristing != null && (
             thristing.CurrentThristing < thristing.ThristThreshold ||
             thristing.CurrentThristing < thristing.MaxThristLevel && entity.GetComponent<PersonDecisionDrinkComponent>().Enabled
-        ))
+        ) && waterSources.Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
         {
             entity.GetComponent<PrintComponent>().Text = "Drink";
             this.SetDecision<PersonDecisionDrinkComponent>(entity);
@@ -36,7 +36,8 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
         }
 
         var fatigue = entity.GetComponent<FatigueComponent>();
-        if (fatigue != null && restSources.Entities.Any() && fatigue.CurrentFatigue > fatigue.FatigueThreshold)
+        if (fatigue != null && fatigue.CurrentFatigue > fatigue.FatigueThreshold &&
+            restSources.Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
         {
             entity.GetComponent<PrintComponent>().Text = "Sleep";
             this.SetDecision<PersonDecisionSleepComponent>(entity);
