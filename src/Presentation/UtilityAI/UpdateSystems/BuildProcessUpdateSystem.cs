@@ -28,7 +28,6 @@ public class BuildProcessUpdateSystem : MatcherEntitySystem
         base.DoAction(entity, delta);
 
         var position = entity.GetComponent<PositionComponent>();
-        var building = entity.GetOrCreateComponent<BuildingComponent>();
 
         var closestSource = constructionSource.Entities
                             .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
@@ -38,15 +37,10 @@ public class BuildProcessUpdateSystem : MatcherEntitySystem
 
         if (position.Position != closestConstruction)
         {
-            building.SelectedConstruction?.GetComponent<AvailabilityComponent>()?.CurrentBuilders.Remove(entity);
-            building.SelectedConstruction = null;
-            building.Disable();
+            entity.GetComponent<PersonDecisionBuildComponent>().SelectedConstruction?.GetComponent<AvailabilityComponent>().CurrentUsers.Remove(entity);
+            entity.GetComponent<PersonDecisionBuildComponent>().SelectedConstruction = null;
             return;
         }
-
-        building.Enable();
-        building.SelectedConstruction = closestSource;
-        closestSource.GetOrCreateComponent<AvailabilityComponent>()?.CurrentBuilders.Add(entity);
 
         var construction = closestSource.GetComponent<ConstructionComponent>();
         if (construction.BuildProgress >= 1)
@@ -56,6 +50,9 @@ public class BuildProcessUpdateSystem : MatcherEntitySystem
             closestSource.RemoveComponent<ConstructionComponent>();
             return;
         }
+
+        closestSource.GetOrCreateComponent<AvailabilityComponent>()?.CurrentUsers.Add(entity);
+        entity.GetComponent<PersonDecisionBuildComponent>().SelectedConstruction = closestSource;
 
         var builder = entity.GetComponent<BuilderComponent>();
 

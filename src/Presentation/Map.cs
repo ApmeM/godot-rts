@@ -18,8 +18,11 @@ public partial class Map
         this.context = new GameContext(this.WorldToMap, (map) => this.MapToWorld(map));
         this.el = new EntityList();
 
+        this.render_esl = new EntitySystemList(el);
+        this.render_esl.Add(new Node2DPositionRenderSystem()); // This system should be added before PositionUpdateSystem
+        this.render_esl.Add(new Node2DDyingRenderSystem());
+
         this.esl = new EntitySystemList(el);
-        this.esl.Add(new BuildingNoBuildSyncUpdateSystem());
         this.esl.Add(new BuildMoveUpdateSystem());
         this.esl.Add(new BuildProcessUpdateSystem());
         this.esl.Add(new DrinkableRegenerationUpdateSystem());
@@ -27,20 +30,17 @@ public partial class Map
         this.esl.Add(new DrinkProcessUpdateSystem());
         this.esl.Add(new DrinkThristingDeathUpdateSystem());
         this.esl.Add(new DrinkThristingUpdateSystem());
-        this.esl.Add(new FatigueNoSleepThristingSyncUpdateSystem());
         this.esl.Add(new FatigueProcessUpdateSystem());
-        this.esl.Add(new FatigueRestMoveUpdateSystem());
+        this.esl.Add(new FatigueMoveUpdateSystem());
         this.esl.Add(new FatigueSleepingUpdateSystem());
-        this.esl.Add(new FatigueSleepNoThristingSyncUpdateSystem());
+        this.esl.Add(new FatigueSleepThristingSyncUpdateSystem());
         this.esl.Add(new FatigueToSleepUpdateSystem());
         this.esl.Add(new MovingUpdateSystem(this.context));
+        this.esl.Add(new PersonDecisionBuildAvailabilitySyncUpdateSystem());
+        this.esl.Add(new PersonDecisionDrinkAvailabilitySyncUpdateSystem());
         this.esl.Add(new PersonDecisionUpdateSystem());
         this.esl.Add(new PositionUpdateSystem(this.context));
         this.esl.Add(new WalkingUpdateSystem());
-
-        this.render_esl = new EntitySystemList(el);
-        this.render_esl.Add(new Node2DPositionRenderSystem());
-        this.render_esl.Add(new Node2DDyingRenderSystem());
 
         // ToDo: this should be some undestructable mountains.
         const int size = 25;

@@ -22,25 +22,25 @@ public class DrinkProcessUpdateSystem : MatcherEntitySystem
         var position = entity.GetComponent<PositionComponent>();
 
         var closestSource = drinkSource.Entities
+                            .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
                             .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
                             .FirstOrDefault();
 
         var closestWater = closestSource?.GetComponent<PositionComponent>()?.Position ?? Godot.Vector2.Inf;
         if (position.Position != closestWater)
         {
+            entity.GetComponent<PersonDecisionDrinkComponent>().SelectedSource?.GetComponent<AvailabilityComponent>().CurrentUsers.Remove(entity);
+            entity.GetComponent<PersonDecisionDrinkComponent>().SelectedSource = null;
             return;
         }
 
+        closestSource.GetOrCreateComponent<AvailabilityComponent>()?.CurrentUsers.Add(entity);
+        entity.GetComponent<PersonDecisionDrinkComponent>().SelectedSource = closestSource;
+
         var drinkable = closestSource.GetComponent<DrinkableComponent>();
-        var toDrink = Mathf.Min(Mathf.Min(thristing.DrinkSpeed * delta, thristing.MaxThristLevel - thristing.CurrentThristing), drinkable.CurrentAmount);
+        var toDrink = Mathf.Min(thristing.DrinkSpeed * delta, drinkable.CurrentAmount);
         drinkable.CurrentAmount -= toDrink;
         thristing.CurrentThristing += toDrink;
-
-        if (thristing.CurrentThristing >= thristing.MaxThristLevel)
-        {
-            thristing.CurrentThristing = thristing.MaxThristLevel;
-            entity.GetComponent<PersonDecisionDrinkComponent>().Disable();
-        }
     }
 
     protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)

@@ -13,7 +13,7 @@ public class FatigueProcessUpdateSystem : MatcherEntitySystem
         base.DoAction(entity, delta);
 
         var fatigue = entity.GetComponent<FatigueComponent>();
-        var isBuilding = entity.GetComponent<BuildingComponent>()?.Enabled ?? false;
+        var isBuilding = entity.GetComponent<PersonDecisionBuildComponent>()?.SelectedConstruction != null;
 
         fatigue.CurrentFatigue += fatigue.FatigueSpeed * delta * (isBuilding ? 5 : 1);
     }

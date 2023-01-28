@@ -1,11 +1,11 @@
 using System.Linq;
 using LocomotorECS;
 
-public class FatigueRestMoveUpdateSystem : MatcherEntitySystem
+public class FatigueMoveUpdateSystem : MatcherEntitySystem
 {
     private MatcherEntityList restSource;
 
-    public FatigueRestMoveUpdateSystem() : base(new Matcher()
+    public FatigueMoveUpdateSystem() : base(new Matcher()
         .All<PersonDecisionSleepComponent>()
         .All<PositionComponent>()
         .All<MovingComponent>()

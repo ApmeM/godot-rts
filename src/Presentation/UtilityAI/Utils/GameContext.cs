@@ -37,7 +37,6 @@ public class GameContext
         }
 
         this.AddPosition(context);
-        GD.Print($"Update position {context.Position}");
     }
 
     public Vector2 AddPosition(PositionComponent context)

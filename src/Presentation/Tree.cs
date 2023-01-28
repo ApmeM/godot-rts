@@ -5,7 +5,7 @@ using LocomotorECS;
 [SceneReference("Tree.tscn")]
 public partial class Tree
 {
-    public readonly Entity e = new Entity();
+    public readonly Entity e = BuildEntity();
 
     public override void _Ready()
     {
@@ -16,10 +16,7 @@ public partial class Tree
     public override void _EnterTree()
     {
         base._EnterTree();
-
         e.GetOrCreateComponent<Node2DComponent>().Node = this;
-        e.GetOrCreateComponent<PositionComponent>().Position = this.Position;
-        e.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[] { Vector2.Zero };
         this.GetParent<Map>().el.Add(e);
     }
 
@@ -28,4 +25,12 @@ public partial class Tree
         base._ExitTree();
         this.GetParent<Map>().el.Remove(e);
     }
+
+    public static Entity BuildEntity()
+    {
+        var entity = new Entity();
+        entity.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[] { Vector2.Zero };
+        return entity;
+    }
+
 }

@@ -7,7 +7,7 @@ using LocomotorECS;
 [SceneReference("Person.tscn")]
 public partial class Person
 {
-    public readonly Entity e = new Entity();
+    public readonly Entity e = BuildEntity();
 
     public Random r = new Random();
 
@@ -21,29 +21,15 @@ public partial class Person
     {
         base._Process(delta);
 
-         this.label.Text = this.e.GetComponent<PrintComponent>().Text + "\n" + 
-            "Thristing: " + this.e.GetComponent<DrinkThristingComponent>().CurrentThristing.ToString("#") + "\n" +
-            "Fatigue: " + this.e.GetComponent<FatigueComponent>().CurrentFatigue.ToString("#") + "\n";
+        this.label.Text = this.e.GetComponent<PrintComponent>().Text + "\n" +
+           "Thristing: " + this.e.GetComponent<DrinkThristingComponent>().CurrentThristing.ToString("#") + "\n" +
+           "Fatigue: " + this.e.GetComponent<FatigueComponent>().CurrentFatigue.ToString("#") + "\n";
     }
 
     public override void _EnterTree()
     {
         base._EnterTree();
-
-        e.GetOrCreateComponent<PersonComponent>();
         e.GetOrCreateComponent<Node2DComponent>().Node = this;
-        e.GetOrCreateComponent<PositionComponent>().Position = this.Position;
-        e.GetOrCreateComponent<MovingComponent>();
-        e.GetOrCreateComponent<DrinkThristingComponent>();
-        e.GetOrCreateComponent<PrintComponent>();
-        e.GetOrCreateComponent<DyingComponent>();
-        e.GetOrCreateComponent<BuilderComponent>();
-        e.GetOrCreateComponent<PersonDecisionWalkComponent>();
-        e.GetOrCreateComponent<FatigueComponent>().MaxFatigue = 100;
-        e.GetOrCreateComponent<FatigueComponent>().FatigueThreshold = 80;
-        e.GetOrCreateComponent<FatigueComponent>().FatigueSpeed = 1f;
-        e.GetOrCreateComponent<FatigueComponent>().DefaultRest = 5f;
-
         this.GetParent<Map>().el.Add(e);
     }
 
@@ -51,5 +37,23 @@ public partial class Person
     {
         base._ExitTree();
         this.GetParent<Map>().el.Remove(e);
+    }
+
+    public static Entity BuildEntity()
+    {
+        var entity = new Entity();
+        entity.GetOrCreateComponent<PersonComponent>();
+        entity.GetOrCreateComponent<PositionComponent>();
+        entity.GetOrCreateComponent<MovingComponent>();
+        entity.GetOrCreateComponent<DrinkThristingComponent>();
+        entity.GetOrCreateComponent<PrintComponent>();
+        entity.GetOrCreateComponent<DyingComponent>();
+        entity.GetOrCreateComponent<BuilderComponent>();
+        entity.GetOrCreateComponent<PersonDecisionWalkComponent>();
+        entity.GetOrCreateComponent<FatigueComponent>().MaxFatigue = 100;
+        entity.GetOrCreateComponent<FatigueComponent>().FatigueThreshold = 80;
+        entity.GetOrCreateComponent<FatigueComponent>().FatigueSpeed = 1f;
+        entity.GetOrCreateComponent<FatigueComponent>().DefaultRest = 5f;
+        return entity;
     }
 }

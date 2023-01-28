@@ -14,8 +14,7 @@ public class DrinkThristingDeathUpdateSystem : MatcherEntitySystem
 
         if (entity.GetComponent<DrinkThristingComponent>().CurrentThristing < 0)
         {
-            var dying = entity.GetComponent<DyingComponent>();
-            dying.IsDead = true;
+            entity.GetComponent<DyingComponent>().IsDead = true;
         }
     }
 }

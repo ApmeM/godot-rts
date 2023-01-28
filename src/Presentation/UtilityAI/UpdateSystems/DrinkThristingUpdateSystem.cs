@@ -1,10 +1,10 @@
+using System.Collections.Generic;
 using LocomotorECS;
 
 public class DrinkThristingUpdateSystem : MatcherEntitySystem
 {
     public DrinkThristingUpdateSystem() : base(new Matcher()
-        .All<DrinkThristingComponent>()
-        .Exclude<FatigueSleepComponent>())
+        .All<DrinkThristingComponent>())
     {
     }
 

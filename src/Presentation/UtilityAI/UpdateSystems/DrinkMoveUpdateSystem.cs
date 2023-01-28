@@ -30,6 +30,7 @@ public class DrinkMoveUpdateSystem : MatcherEntitySystem
         var position = entity.GetComponent<PositionComponent>();
 
         var closestSource = drinkSource.Entities
+                            .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
                             .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
                             .FirstOrDefault();
 

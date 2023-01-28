@@ -3,12 +3,12 @@ using LocomotorECS;
 
 public class AvailabilityComponent : Component
 {
-    public int MaxNumberOfBuilders { get; set; }
+    public int MaxNumberOfUsers { get; set; }
 
-    public HashSet<Entity> CurrentBuilders { get; private set; } = new HashSet<Entity>();
+    public HashSet<Entity> CurrentUsers { get; private set; } = new HashSet<Entity>();
 
     public bool IsAvailable(Entity entity)
     {
-        return CurrentBuilders.Contains(entity) || CurrentBuilders.Count < MaxNumberOfBuilders;
+        return CurrentUsers.Contains(entity) || CurrentUsers.Count < MaxNumberOfUsers;
     }
 }

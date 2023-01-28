@@ -9,8 +9,7 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
 
     public PersonDecisionUpdateSystem() : base(new Matcher()
             .All<PersonComponent>()
-            .Exclude<FatigueSleepComponent>()
-            .Exclude<PersonDecisionDrinkComponent>())
+            .Exclude<FatigueSleepComponent>())
     {
     }
 
@@ -20,37 +19,61 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
 
         var position = entity.GetComponent<PositionComponent>();
 
-        entity.GetOrCreateComponent<PersonDecisionDrinkComponent>().Disable();
-        entity.GetOrCreateComponent<PersonDecisionSleepComponent>().Disable();
-        entity.GetOrCreateComponent<PersonDecisionBuildComponent>().Disable();
-        entity.GetOrCreateComponent<PersonDecisionWalkComponent>().Disable();
+        entity.GetOrCreateComponent<PersonDecisionDrinkComponent>();
+        entity.GetOrCreateComponent<PersonDecisionSleepComponent>();
+        entity.GetOrCreateComponent<PersonDecisionBuildComponent>();
+        entity.GetOrCreateComponent<PersonDecisionWalkComponent>();
 
         var thristing = entity.GetComponent<DrinkThristingComponent>();
-        if (thristing != null && thristing.CurrentThristing < thristing.ThristThreshold && waterSources.Entities.Any())
+        if (thristing != null && waterSources.Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any() && (
+            thristing.CurrentThristing < thristing.ThristThreshold ||
+            thristing.CurrentThristing < thristing.MaxThristLevel && entity.GetComponent<PersonDecisionDrinkComponent>().Enabled
+        ))
         {
             entity.GetComponent<PrintComponent>().Text = "Drink";
-            entity.GetOrCreateComponent<PersonDecisionDrinkComponent>().Enable();
+            this.SetDecision<PersonDecisionDrinkComponent>(entity);
             return;
         }
 
         var fatigue = entity.GetComponent<FatigueComponent>();
-        if (fatigue != null && fatigue.CurrentFatigue > fatigue.FatigueThreshold && restSources.Entities.Any() || entity.GetComponent<PersonDecisionSleepComponent>().Enabled)
+        if (fatigue != null && restSources.Entities.Any() && fatigue.CurrentFatigue > fatigue.FatigueThreshold)
         {
             entity.GetComponent<PrintComponent>().Text = "Sleep";
-            entity.GetOrCreateComponent<PersonDecisionSleepComponent>().Enable();
+            this.SetDecision<PersonDecisionSleepComponent>(entity);
             return;
         }
 
         var biulder = entity.GetComponent<BuilderComponent>();
-        if (biulder != null && buildSources.Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any() || entity.GetComponent<PersonDecisionBuildComponent>().Enabled)
+        if (biulder != null && buildSources.Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
         {
             entity.GetComponent<PrintComponent>().Text = "Build";
-            entity.GetOrCreateComponent<PersonDecisionBuildComponent>().Enable();
+            this.SetDecision<PersonDecisionBuildComponent>(entity);
             return;
         }
 
+        this.SetDecision<PersonDecisionWalkComponent>(entity);
         entity.GetComponent<PrintComponent>().Text = "Walk";
-        entity.GetOrCreateComponent<PersonDecisionWalkComponent>().Enable();
+    }
+
+    private void SetDecision<T>(Entity entity)
+    {
+        CheckDecision<T, PersonDecisionDrinkComponent>(entity);
+        CheckDecision<T, PersonDecisionSleepComponent>(entity);
+        CheckDecision<T, PersonDecisionBuildComponent>(entity);
+        CheckDecision<T, PersonDecisionWalkComponent>(entity);
+    }
+
+
+    private void CheckDecision<T1, T2>(Entity entity) where T2 : Component
+    {
+        if (typeof(T1) != typeof(T2))
+        {
+            entity.GetComponent<T2>().Disable();
+        }
+        else
+        {
+            entity.GetComponent<T2>().Enable();
+        }
     }
 
     protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
