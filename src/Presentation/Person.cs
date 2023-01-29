@@ -7,7 +7,7 @@ using LocomotorECS;
 [SceneReference("Person.tscn")]
 public partial class Person
 {
-    public readonly Entity e = BuildEntity();
+    public readonly Entity e = Entities.BuildPerson();
 
     public Random r = new Random();
 
@@ -39,21 +39,4 @@ public partial class Person
         this.GetParent<Map>().el.Remove(e);
     }
 
-    public static Entity BuildEntity()
-    {
-        var entity = new Entity();
-        entity.GetOrCreateComponent<PersonComponent>();
-        entity.GetOrCreateComponent<PositionComponent>();
-        entity.GetOrCreateComponent<MovingComponent>();
-        entity.GetOrCreateComponent<DrinkThristingComponent>();
-        entity.GetOrCreateComponent<PrintComponent>();
-        entity.GetOrCreateComponent<DyingComponent>();
-        entity.GetOrCreateComponent<BuilderComponent>();
-        entity.GetOrCreateComponent<PersonDecisionWalkComponent>();
-        entity.GetOrCreateComponent<FatigueComponent>().MaxFatigue = 100;
-        entity.GetOrCreateComponent<FatigueComponent>().FatigueThreshold = 80;
-        entity.GetOrCreateComponent<FatigueComponent>().FatigueSpeed = 1f;
-        entity.GetOrCreateComponent<FatigueComponent>().DefaultRest = 5f;
-        return entity;
-    }
 }

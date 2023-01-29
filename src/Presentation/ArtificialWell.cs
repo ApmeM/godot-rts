@@ -5,7 +5,7 @@ using LocomotorECS;
 [SceneReference("ArtificialWell.tscn")]
 public partial class ArtificialWell
 {
-    public readonly Entity e = BuildEntity();
+    public readonly Entity e = Entities.BuildArificialWell();
 
     public override void _Ready()
     {
@@ -24,30 +24,6 @@ public partial class ArtificialWell
     {
         base._ExitTree();
         this.GetParent<Map>().el.Remove(e);
-    }
-
-    public static Entity BuildEntity()
-    {
-        var entity = new Entity();
-        entity.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[]{
-            Vector2.Up,
-            Vector2.Down,
-            Vector2.Left,
-            Vector2.Left + Vector2.Up,
-            Vector2.Left + Vector2.Down,
-            Vector2.Right + Vector2.Up,
-            Vector2.Right + Vector2.Down,
-        };
-        entity.GetOrCreateComponent<HPComponent>().MaxHP = 50;
-        entity.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 10;
-        entity.GetOrCreateComponent<ConstructionComponent>().ConstructionDone = (e) =>
-        {
-            e.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 5;
-            e.GetOrCreateComponent<DrinkableComponent>().CurrentAmount = 0;
-            e.GetOrCreateComponent<DrinkableRegenerationComponent>().Regeneration = 25;
-            e.GetOrCreateComponent<DrinkableRegenerationComponent>().MaxAmount = 1000;
-        };
-        return entity;
     }
 
     public override void _Process(float delta)

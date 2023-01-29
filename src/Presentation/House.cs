@@ -5,7 +5,7 @@ using LocomotorECS;
 [SceneReference("House.tscn")]
 public partial class House
 {
-    public readonly Entity e = BuildEntity();
+    public readonly Entity e = Entities.BuildHouse();
 
     public override void _Ready()
     {
@@ -24,27 +24,6 @@ public partial class House
     {
         base._ExitTree();
         this.GetParent<Map>().el.Remove(e);
-    }
-    public static Entity BuildEntity()
-    {
-        var entity = new Entity();
-        entity.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[]{
-            Vector2.Up,
-            Vector2.Down,
-            Vector2.Left,
-            Vector2.Left + Vector2.Up,
-            Vector2.Left + Vector2.Down,
-            Vector2.Right + Vector2.Up,
-            Vector2.Right + Vector2.Down,
-        };
-        entity.GetOrCreateComponent<HPComponent>().MaxHP = 100;
-        entity.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 10;
-        entity.GetOrCreateComponent<ConstructionComponent>().ConstructionDone = (e) =>
-        {
-            e.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 10;
-            e.GetOrCreateComponent<RestComponent>().Regeneration = 20;
-        };
-        return entity;
     }
 
     public override void _Process(float delta)

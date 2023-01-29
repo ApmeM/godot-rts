@@ -5,7 +5,7 @@ using LocomotorECS;
 [SceneReference("Well.tscn")]
 public partial class Well
 {
-    public readonly Entity e = BuildEntity();
+    public readonly Entity e = Entities.BuildWell();
 
     public override void _Ready()
     {
@@ -17,7 +17,7 @@ public partial class Well
     {
         base._Process(delta);
 
-         this.label.Text = this.e.GetComponent<DrinkableComponent>().CurrentAmount.ToString("#");
+        this.label.Text = this.e.GetComponent<DrinkableComponent>().CurrentAmount.ToString("#");
     }
 
     public override void _EnterTree()
@@ -31,16 +31,5 @@ public partial class Well
     {
         base._ExitTree();
         this.GetParent<Map>().el.Remove(e);
-    }
-
-    public static Entity BuildEntity()
-    {
-        var entity = new Entity();
-        entity.GetOrCreateComponent<PositionComponent>();
-        entity.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 1;
-        entity.GetOrCreateComponent<DrinkableComponent>().CurrentAmount = 50;
-        entity.GetOrCreateComponent<DrinkableRegenerationComponent>().MaxAmount = 100;
-        entity.GetOrCreateComponent<DrinkableRegenerationComponent>().Regeneration = 10;
-        return entity;
     }
 }
