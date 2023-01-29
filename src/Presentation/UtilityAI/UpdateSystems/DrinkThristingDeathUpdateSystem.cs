@@ -4,7 +4,7 @@ public class DrinkThristingDeathUpdateSystem : MatcherEntitySystem
 {
     public DrinkThristingDeathUpdateSystem() : base(new Matcher()
         .All<DrinkThristingComponent>()
-        .All<DyingComponent>())
+        .Exclude<DeadComponent>())
     {
     }
 
@@ -14,7 +14,7 @@ public class DrinkThristingDeathUpdateSystem : MatcherEntitySystem
 
         if (entity.GetComponent<DrinkThristingComponent>().CurrentThristing < 0)
         {
-            entity.GetComponent<DyingComponent>().IsDead = true;
+            entity.AddComponent<DeadComponent>();
         }
     }
 }

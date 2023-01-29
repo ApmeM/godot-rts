@@ -13,7 +13,6 @@ public class Entities
         entity.GetOrCreateComponent<MovingComponent>();
         entity.GetOrCreateComponent<DrinkThristingComponent>();
         entity.GetOrCreateComponent<PrintComponent>();
-        entity.GetOrCreateComponent<DyingComponent>();
         entity.GetOrCreateComponent<BuilderComponent>();
         entity.GetOrCreateComponent<PersonDecisionWalkComponent>();
         entity.GetOrCreateComponent<FatigueComponent>().MaxFatigue = 100;
