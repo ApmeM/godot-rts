@@ -13,5 +13,6 @@ public class Node2DDyingRenderSystem : MatcherEntitySystem
         var node = entity.GetComponent<Node2DComponent>();
         node.Node.QueueFree();
         node.Node.GetParent().RemoveChild(node.Node);
+        entity.Disable();
     }
 }

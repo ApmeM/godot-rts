@@ -8,6 +8,7 @@ public class Entities
     public static Entity BuildPerson()
     {
         var entity = new Entity();
+        entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.Person;
         entity.GetOrCreateComponent<PersonComponent>();
         entity.GetOrCreateComponent<PositionComponent>();
         entity.GetOrCreateComponent<MovingComponent>();
@@ -25,6 +26,7 @@ public class Entities
     public static Entity BuildHouse()
     {
         var entity = new Entity();
+        entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.House;
         entity.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[]{
             Vector2.Up,
             Vector2.Down,
@@ -47,6 +49,7 @@ public class Entities
     public static Entity BuildArificialWell()
     {
         var entity = new Entity();
+        entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.ArtificialWell;
         entity.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[]{
             Vector2.Up,
             Vector2.Down,
@@ -71,6 +74,7 @@ public class Entities
     public static Entity BuildTree()
     {
         var entity = new Entity();
+        entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.Tree;
         entity.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[] { Vector2.Zero };
         return entity;
     }
@@ -79,6 +83,7 @@ public class Entities
     {
         var entity = new Entity();
         entity.GetOrCreateComponent<PositionComponent>();
+        entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.Well;
         entity.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 1;
         entity.GetOrCreateComponent<DrinkableComponent>().CurrentAmount = 50;
         entity.GetOrCreateComponent<DrinkableRegenerationComponent>().MaxAmount = 100;

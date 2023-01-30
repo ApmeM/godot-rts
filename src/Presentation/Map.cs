@@ -1,6 +1,7 @@
 using GodotAnalysers;
 using Godot;
 using LocomotorECS;
+using GodotRts.Presentation.Utils;
 
 [SceneReference("Map.tscn")]
 public partial class Map
@@ -11,6 +12,71 @@ public partial class Map
     {
         base._Ready();
         this.FillMembers();
+
+        // Design time elements:
+        foreach (Node2D child in this.GetChildren())
+        {
+            Entity entity;
+            switch (child)
+            {
+                case ArtificialWell artificialWell:
+                    entity = Entities.BuildArificialWell();
+                    break;
+                case House house:
+                    entity = Entities.BuildHouse();
+                    break;
+                case Person person:
+                    entity = Entities.BuildPerson();
+                    break;
+                case Tree tree:
+                    entity = Entities.BuildTree();
+                    break;
+                case Well well:
+                    entity = Entities.BuildWell();
+                    break;
+                default:
+                    entity = null;
+                    break;
+            }
+
+            entity.GetComponent<PositionComponent>().Position = child.Position;
+            this.el.Add(entity);
+        }
+
+        this.ClearChildren();
+
+        // ToDo: this should be some undestructable mountains.
+        const int size = 25;
+
+        Entity e;
+        e = Entities.BuildTree();
+        e.GetComponent<PositionComponent>().Position = new Vector2(0, 0);
+        el.Add(e);
+        e = Entities.BuildTree();
+        e.GetComponent<PositionComponent>().Position = new Vector2(size * this.CellSize.x, 0);
+        el.Add(e);
+        e = Entities.BuildTree();
+        e.GetComponent<PositionComponent>().Position = new Vector2(0, size * this.CellSize.y);
+        el.Add(e);
+        e = Entities.BuildTree();
+        e.GetComponent<PositionComponent>().Position = new Vector2(size * this.CellSize.x, size * this.CellSize.y);
+        el.Add(e);
+
+        for (var i = 1; i < size; i++)
+        {
+            e = Entities.BuildTree();
+            e.GetComponent<PositionComponent>().Position = new Vector2(0, i * this.CellSize.y);
+            el.Add(e);
+            e = Entities.BuildTree();
+            e.GetComponent<PositionComponent>().Position = new Vector2(i * this.CellSize.x, 0);
+            el.Add(e);
+            e = Entities.BuildTree();
+            e.GetComponent<PositionComponent>().Position = new Vector2(size * this.CellSize.x, i * this.CellSize.y);
+            el.Add(e);
+            e = Entities.BuildTree();
+            e.GetComponent<PositionComponent>().Position = new Vector2(i * this.CellSize.x, size * this.CellSize.y);
+            el.Add(e);
+        }
     }
 
     public Map()
@@ -19,6 +85,7 @@ public partial class Map
         this.el = new EntityList();
 
         this.render_esl = new EntitySystemList(el);
+        this.render_esl.Add(new EntityTypeNode2DRenderSystem(this));
         this.render_esl.Add(new Node2DPositionRenderSystem()); // This system should be added before PositionUpdateSystem
         this.render_esl.Add(new Node2DDyingRenderSystem());
 
@@ -41,53 +108,6 @@ public partial class Map
         this.esl.Add(new PersonDecisionUpdateSystem());
         this.esl.Add(new PositionUpdateSystem(this.context));
         this.esl.Add(new WalkingUpdateSystem());
-
-        // ToDo: this should be some undestructable mountains.
-        const int size = 25;
-
-        context.AddPosition(new PositionComponent()
-        {
-            Position = new Vector2(0, 0),
-            BlockingCells = new Vector2[] { Vector2.Zero }
-        });
-        context.AddPosition(new PositionComponent()
-        {
-            Position = new Vector2(size * this.CellSize.x, 0),
-            BlockingCells = new Vector2[] { Vector2.Zero }
-        });
-        context.AddPosition(new PositionComponent()
-        {
-            Position = new Vector2(0, size * this.CellSize.y),
-            BlockingCells = new Vector2[] { Vector2.Zero }
-        });
-        context.AddPosition(new PositionComponent()
-        {
-            Position = new Vector2(size * this.CellSize.x, size * this.CellSize.y),
-            BlockingCells = new Vector2[] { Vector2.Zero }
-        });
-        for (var i = 1; i < size; i++)
-        {
-            context.AddPosition(new PositionComponent()
-            {
-                Position = new Vector2(0, i * this.CellSize.y),
-                BlockingCells = new Vector2[] { Vector2.Zero }
-            });
-            context.AddPosition(new PositionComponent()
-            {
-                Position = new Vector2(i * this.CellSize.x, 0),
-                BlockingCells = new Vector2[] { Vector2.Zero }
-            });
-            context.AddPosition(new PositionComponent()
-            {
-                Position = new Vector2(size * this.CellSize.x, i * this.CellSize.y),
-                BlockingCells = new Vector2[] { Vector2.Zero }
-            });
-            context.AddPosition(new PositionComponent()
-            {
-                Position = new Vector2(i * this.CellSize.x, size * this.CellSize.y),
-                BlockingCells = new Vector2[] { Vector2.Zero }
-            });
-        }
     }
 
     public readonly EntityList el;

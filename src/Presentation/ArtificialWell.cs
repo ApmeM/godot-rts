@@ -3,27 +3,14 @@ using Godot;
 using LocomotorECS;
 
 [SceneReference("ArtificialWell.tscn")]
-public partial class ArtificialWell
+public partial class ArtificialWell : EntityTypeNode2DRenderSystem.IEntityNode2D
 {
-    public readonly Entity e = Entities.BuildArificialWell();
+    public Entity e { get; set; }
 
     public override void _Ready()
     {
         base._Ready();
         this.FillMembers();
-    }
-
-    public override void _EnterTree()
-    {
-        base._EnterTree();
-        e.GetOrCreateComponent<Node2DComponent>().Node = this;
-        this.GetParent<Map>().el.Add(e);
-    }
-
-    public override void _ExitTree()
-    {
-        base._ExitTree();
-        this.GetParent<Map>().el.Remove(e);
     }
 
     public override void _Process(float delta)
