@@ -46,7 +46,7 @@ public partial class Map
         this.ClearChildren();
 
         // ToDo: this should be some undestructable mountains.
-        const int size = 25;
+        const int size = 30;
 
         Entity e;
         e = Entities.BuildTree();
@@ -107,6 +107,7 @@ public partial class Map
         this.esl.Add(new PersonDecisionDrinkAvailabilitySyncUpdateSystem());
         this.esl.Add(new PersonDecisionUpdateSystem());
         this.esl.Add(new PositionUpdateSystem(this.context));
+        this.esl.Add(new ReproductionUpdateSystem(el));
         this.esl.Add(new WalkingUpdateSystem());
     }
 
