@@ -17,6 +17,8 @@ position = Vector2( 0, -10 )
 scale = Vector2( 1, 2 )
 
 [node name="Sprite" type="Sprite" parent="Node2D"]
+position = Vector2( -362.604, 73.4393 )
 rotation = 0.785398
 scale = Vector2( 2, 16 )
 texture = SubResource( 2 )
+offset = Vector2( 102.235, -19.2706 )

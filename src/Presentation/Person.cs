@@ -4,9 +4,13 @@ using GodotAnalysers;
 using LocomotorECS;
 
 [SceneReference("Person.tscn")]
-public partial class Person : EntityTypeNode2DRenderSystem.IEntityNode2D
+public partial class Person : EntityTypeNode2DRenderSystem.IEntityNode2D, IMinimapElement
 {
     public Entity e { get; set; }
+
+    public bool VisibleOnBorder => false;
+
+    public Texture Texture => this.sprite.Texture;
 
     public Random r = new Random();
 
@@ -14,6 +18,8 @@ public partial class Person : EntityTypeNode2DRenderSystem.IEntityNode2D
     {
         base._Ready();
         this.FillMembers();
+
+        this.AddToGroup(Groups.MinimapElement);
     }
 
     public override void _Process(float delta)
@@ -23,7 +29,6 @@ public partial class Person : EntityTypeNode2DRenderSystem.IEntityNode2D
         this.label.Text = this.e.GetComponent<PrintComponent>().Text + "\n" +
            "Thristing: " + this.e.GetComponent<DrinkThristingComponent>().CurrentThristing.ToString("#") + "\n" +
            "Fatigue: " + this.e.GetComponent<FatigueComponent>().CurrentFatigue.ToString("#") + "\n" +
-           ((this.e.GetComponent<SelectedComponent>()?.Enabled ?? false) ? "Selected" : "") + "\n"
-           ;
+           ((this.e.GetComponent<SelectedComponent>()?.Enabled ?? false) ? "Selected" : "") + "\n";
     }
 }
