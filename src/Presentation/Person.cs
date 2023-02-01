@@ -22,6 +22,8 @@ public partial class Person : EntityTypeNode2DRenderSystem.IEntityNode2D
 
         this.label.Text = this.e.GetComponent<PrintComponent>().Text + "\n" +
            "Thristing: " + this.e.GetComponent<DrinkThristingComponent>().CurrentThristing.ToString("#") + "\n" +
-           "Fatigue: " + this.e.GetComponent<FatigueComponent>().CurrentFatigue.ToString("#") + "\n";
+           "Fatigue: " + this.e.GetComponent<FatigueComponent>().CurrentFatigue.ToString("#") + "\n" +
+           ((this.e.GetComponent<SelectedComponent>()?.Enabled ?? false) ? "Selected" : "") + "\n"
+           ;
     }
 }

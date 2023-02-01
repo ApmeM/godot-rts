@@ -20,6 +20,8 @@ public class Entities
         entity.GetOrCreateComponent<FatigueComponent>().FatigueThreshold = 80;
         entity.GetOrCreateComponent<FatigueComponent>().FatigueSpeed = 1f;
         entity.GetOrCreateComponent<FatigueComponent>().DefaultRest = 5f;
+        entity.GetOrCreateComponent<MouseInputComponent>();
+        entity.GetOrCreateComponent<SelectableComponent>();
         return entity;
     }
     
