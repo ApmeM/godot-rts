@@ -5,7 +5,7 @@ using LocomotorECS;
 
 public class World
 {
-    public World(TileMap map)
+    public World(Map map)
     {
         this.map = map;
 

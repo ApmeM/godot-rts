@@ -29,9 +29,3 @@ visible = false
 rotation = 0.785398
 scale = Vector2( 6, 42 )
 texture = SubResource( 4 )
-
-[node name="Label" type="Label" parent="."]
-margin_left = -20.0
-margin_top = -26.0
-margin_right = 20.0
-margin_bottom = -12.0

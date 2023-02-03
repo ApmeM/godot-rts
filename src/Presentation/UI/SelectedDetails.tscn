@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Presentation/UI/SelectedDetails.cs" type="Script" id=1]
+
+[node name="SelectedDetails" type="Control"]
+margin_right = 40.0
+margin_bottom = 40.0
+script = ExtResource( 1 )
+
+[node name="Stats" type="VBoxContainer" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0

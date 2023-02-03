@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://Presentation/Person.cs" type="Script" id=2]
 
@@ -7,6 +7,13 @@ colors = PoolColorArray( 1, 1, 1, 1, 0, 0, 0, 1 )
 
 [sub_resource type="GradientTexture" id=2]
 gradient = SubResource( 3 )
+width = 8
+
+[sub_resource type="Gradient" id=4]
+colors = PoolColorArray( 1, 1, 1, 1, 0.957031, 0.531408, 0.0336456, 1 )
+
+[sub_resource type="GradientTexture" id=5]
+gradient = SubResource( 4 )
 width = 8
 
 [node name="Person" type="Node2D"]
@@ -18,8 +25,8 @@ rotation = 0.785398
 scale = Vector2( 2, 16 )
 texture = SubResource( 2 )
 
-[node name="Label" type="Label" parent="."]
-margin_left = -20.0
-margin_top = -31.0
-margin_right = 20.0
-margin_bottom = -17.0
+[node name="Sprite2" type="Sprite" parent="."]
+visible = false
+position = Vector2( 0, 5 )
+scale = Vector2( 2, 1 )
+texture = SubResource( 5 )

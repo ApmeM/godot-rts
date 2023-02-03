@@ -20,6 +20,9 @@ public partial class Main
         this.world.BuildFromDesignTime();
         this.map.ClearChildren();
         this.world.BuildFence(30, this.map.CellSize.x, this.map.CellSize.y);
+
+        this.selectedDetails.World = this.world;
+        this.selectedActions.World = this.world;
     }
 
     public override void _Process(float delta)

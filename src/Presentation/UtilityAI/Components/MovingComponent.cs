@@ -8,5 +8,5 @@ public class MovingComponent : Component
 
     public Vector2 PathTarget { get; set; } = Vector2.Inf;
 
-    public float MoveSpeed { get; set; } = 128;
+    public float MoveSpeed { get; set; }
 }

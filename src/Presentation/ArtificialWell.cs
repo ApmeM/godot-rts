@@ -18,20 +18,10 @@ public partial class ArtificialWell : EntityTypeNode2DRenderSystem.IEntityNode2D
         base._Process(delta);
 
         var construction = this.e.GetComponent<ConstructionComponent>();
-        var availability = this.e.GetComponent<AvailabilityComponent>();
-
         if (construction == null)
         {
             this.sprite.Hide();
             this.sprite1.Show();
-
-            this.label.Text = this.e.GetComponent<DrinkableComponent>().CurrentAmount.ToString("#") + "\n" +
-                $"{availability.CurrentUsers.Count} / {availability.MaxNumberOfUsers}";
-        }
-        else
-        {
-            this.label.Text = (construction.BuildProgress * 100).ToString("#") + "%\n" +
-                $"{availability.CurrentUsers.Count} / {availability.MaxNumberOfUsers}";
         }
     }
 }

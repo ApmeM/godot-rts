@@ -8,10 +8,12 @@ public class Entities
     public static Entity BuildPerson()
     {
         var entity = new Entity();
+        entity.GetOrCreateComponent<MouseInputComponent>();
+        entity.GetOrCreateComponent<SelectableComponent>();
         entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.Person;
         entity.GetOrCreateComponent<PersonComponent>();
         entity.GetOrCreateComponent<PositionComponent>();
-        entity.GetOrCreateComponent<MovingComponent>();
+        entity.GetOrCreateComponent<MovingComponent>().MoveSpeed = 64;
         entity.GetOrCreateComponent<DrinkThristingComponent>();
         entity.GetOrCreateComponent<PrintComponent>();
         entity.GetOrCreateComponent<BuilderComponent>();
@@ -20,14 +22,14 @@ public class Entities
         entity.GetOrCreateComponent<FatigueComponent>().FatigueThreshold = 80;
         entity.GetOrCreateComponent<FatigueComponent>().FatigueSpeed = 1f;
         entity.GetOrCreateComponent<FatigueComponent>().DefaultRest = 5f;
-        entity.GetOrCreateComponent<MouseInputComponent>();
-        entity.GetOrCreateComponent<SelectableComponent>();
         return entity;
     }
     
     public static Entity BuildHouse()
     {
         var entity = new Entity();
+        entity.GetOrCreateComponent<MouseInputComponent>();
+        entity.GetOrCreateComponent<SelectableComponent>();
         entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.House;
         entity.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[]{
             Vector2.Up,
@@ -51,6 +53,8 @@ public class Entities
     public static Entity BuildArificialWell()
     {
         var entity = new Entity();
+        entity.GetOrCreateComponent<MouseInputComponent>();
+        entity.GetOrCreateComponent<SelectableComponent>();
         entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.ArtificialWell;
         entity.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[]{
             Vector2.Up,
@@ -84,6 +88,8 @@ public class Entities
     public static Entity BuildWell()
     {
         var entity = new Entity();
+        entity.GetOrCreateComponent<MouseInputComponent>();
+        entity.GetOrCreateComponent<SelectableComponent>();
         entity.GetOrCreateComponent<PositionComponent>();
         entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.Well;
         entity.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 1;
