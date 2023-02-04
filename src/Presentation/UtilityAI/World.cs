@@ -28,14 +28,19 @@ public class World
         this.esl.Add(new FatigueSleepingUpdateSystem());
         this.esl.Add(new FatigueSleepThristingSyncUpdateSystem());
         this.esl.Add(new FatigueToSleepUpdateSystem());
+        this.esl.Add(new FollowMouseSystem());
         this.esl.Add(new MovingUpdateSystem(this.context));
         this.esl.Add(new PersonDecisionBuildAvailabilitySyncUpdateSystem());
         this.esl.Add(new PersonDecisionDrinkAvailabilitySyncUpdateSystem());
         this.esl.Add(new PersonDecisionUpdateSystem());
+        this.esl.Add(new PositionBindToMapSystem(this.context));
         this.esl.Add(new PositionUpdateSystem(this.context));
         this.esl.Add(new ReproductionUpdateSystem(el));
         this.esl.Add(new SelectingEntitySystem());
         this.esl.Add(new WalkingUpdateSystem());
+
+        this.esl.AddExecutionOrder<FollowMouseSystem, PositionBindToMapSystem>();
+        this.esl.AddExecutionOrder<PositionBindToMapSystem, PositionUpdateSystem>();
 
         this.render_esl = new EntitySystemList(el);
         this.render_esl.Add(new EntityTypeNode2DRenderSystem(map));
@@ -66,8 +71,7 @@ public class World
                     entity = Entities.BuildWell();
                     break;
                 default:
-                    entity = null;
-                    break;
+                    throw new Exception($"Type {child} not implemented in BuildFromDesignTime");
             }
 
             entity.GetComponent<PositionComponent>().Position = child.Position;

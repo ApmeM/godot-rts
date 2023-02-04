@@ -16,7 +16,8 @@ public class PositionUpdateSystem : MatcherEntitySystem
         foreach (var entity in added)
         {
             var position = entity.GetComponent<PositionComponent>();
-            position.Position = this.gameContext.AddPosition(position);
+            position.Position = this.gameContext.GetCellPosition(position.Position);
+            this.gameContext.AddPosition(position);
         }
         
         foreach (var entity in removed)

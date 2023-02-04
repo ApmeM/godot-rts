@@ -39,12 +39,17 @@ public class GameContext
         this.AddPosition(context);
     }
 
-    public Vector2 AddPosition(PositionComponent context)
+    public Vector2 GetCellPosition(Vector2 pos)
+    {
+        return this.MapToWorld(this.WorldToMap(pos));
+    }
+
+    public void AddPosition(PositionComponent context)
     {
         var newPos = this.WorldToMap(context.Position);
         if (context.BlockingCells.Length == 0)
         {
-            return this.MapToWorld(newPos);
+            return;
         }
 
         System.Diagnostics.Debug.Assert(!this.KnownPositions.ContainsKey(context));
@@ -55,8 +60,6 @@ public class GameContext
             System.Diagnostics.Debug.Assert(!this.Map.Map.ContainsKey(cell));
             this.Map.Map[cell] = context;
         }
-
-        return this.MapToWorld(newPos);
     }
 
     public void RemovePosition(PositionComponent context)
