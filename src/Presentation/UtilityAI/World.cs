@@ -37,6 +37,7 @@ public class World
         this.esl.Add(new PositionUpdateSystem(this.context));
         this.esl.Add(new ReproductionUpdateSystem(el));
         this.esl.Add(new SelectingEntitySystem());
+        this.esl.Add(new SelectPositionMouseSystem(this));
         this.esl.Add(new WalkingUpdateSystem());
 
         this.esl.AddExecutionOrder<FollowMouseSystem, PositionBindToMapSystem>();

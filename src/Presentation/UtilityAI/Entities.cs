@@ -4,6 +4,18 @@ using LocomotorECS;
 
 public class Entities
 {
+    public static Entity Build(EntityTypeComponent.EntityTypes type)
+    {
+        switch (type)
+        {
+            case EntityTypeComponent.EntityTypes.ArtificialWell: return BuildArificialWell();
+            case EntityTypeComponent.EntityTypes.House: return BuildHouse();
+            case EntityTypeComponent.EntityTypes.Person: return BuildPerson();
+            case EntityTypeComponent.EntityTypes.Tree: return BuildTree();
+            case EntityTypeComponent.EntityTypes.Well: return BuildWell();
+            default: throw new Exception("");
+        }
+    }
 
     public static Entity BuildPerson()
     {
@@ -24,7 +36,7 @@ public class Entities
         entity.GetOrCreateComponent<FatigueComponent>().DefaultRest = 5f;
         return entity;
     }
-    
+
     public static Entity BuildHouse()
     {
         var entity = new Entity();
