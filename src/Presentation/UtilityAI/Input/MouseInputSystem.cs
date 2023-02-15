@@ -14,8 +14,13 @@ public class MouseInputSystem : MatcherEntitySystem
 
     protected override void DoAction(Entity entity, float delta)
     {
-        entity.GetComponent<MouseInputComponent>().MousePosition = lastMouse.MousePosition;
-        entity.GetComponent<MouseInputComponent>().MouseButtons = lastMouse.MouseButtons;
+        var currentMouse = entity.GetComponent<MouseInputComponent>();
+        var buttonsChanged = currentMouse.MouseButtons ^ lastMouse.MouseButtons;
+
+        currentMouse.MousePosition = lastMouse.MousePosition;
+        currentMouse.MouseButtons = lastMouse.MouseButtons;
+        currentMouse.JustPressedButtins = buttonsChanged & lastMouse.MouseButtons;
+        currentMouse.JustReleasedButtins = buttonsChanged & (~lastMouse.MouseButtons);
     }
 
     public void UnhandledInput(InputEvent @event)
