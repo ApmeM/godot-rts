@@ -9,6 +9,7 @@ public class ReproductionUpdateSystem : MatcherEntitySystem
 
     public ReproductionUpdateSystem(EntityList el) : base(new Matcher()
         .All<RestComponent>()
+        .All<PlayerComponent>()
         .All<AvailabilityComponent>())
     {
         this.el = el;
@@ -26,7 +27,8 @@ public class ReproductionUpdateSystem : MatcherEntitySystem
 
         if (r.NextDouble() < 0.025)
         {
-            var person = Entities.BuildPerson();
+            var player = entity.GetComponent<PlayerComponent>();
+            var person = Entities.Build(EntityTypeComponent.EntityTypes.Person, player.PlayerId);
             person.GetComponent<PositionComponent>().Position = entity.GetComponent<PositionComponent>().Position;
             el.Add(person);
         }

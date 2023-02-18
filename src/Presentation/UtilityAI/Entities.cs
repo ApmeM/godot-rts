@@ -4,7 +4,13 @@ using LocomotorECS;
 
 public class Entities
 {
-    public static Entity Build(EntityTypeComponent.EntityTypes type)
+    public static Entity Build(EntityTypeComponent.EntityTypes type, int playerId){
+        var e = Build(type);
+        e.AddComponent<PlayerComponent>().PlayerId = playerId;
+        return e;
+    }
+
+    private static Entity Build(EntityTypeComponent.EntityTypes type)
     {
         switch (type)
         {
@@ -17,7 +23,7 @@ public class Entities
         }
     }
 
-    public static Entity BuildPerson()
+    private static Entity BuildPerson()
     {
         var entity = new Entity();
         entity.GetOrCreateComponent<MouseInputComponent>();
@@ -37,7 +43,7 @@ public class Entities
         return entity;
     }
 
-    public static Entity BuildHouse()
+    private static Entity BuildHouse()
     {
         var entity = new Entity();
         entity.GetOrCreateComponent<MouseInputComponent>();
@@ -62,7 +68,7 @@ public class Entities
         return entity;
     }
 
-    public static Entity BuildArificialWell()
+    private static Entity BuildArificialWell()
     {
         var entity = new Entity();
         entity.GetOrCreateComponent<MouseInputComponent>();
@@ -89,7 +95,7 @@ public class Entities
         return entity;
     }
 
-    public static Entity BuildTree()
+    private static Entity BuildTree()
     {
         var entity = new Entity();
         entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.Tree;
@@ -97,7 +103,7 @@ public class Entities
         return entity;
     }
 
-    public static Entity BuildWell()
+    private static Entity BuildWell()
     {
         var entity = new Entity();
         entity.GetOrCreateComponent<MouseInputComponent>();

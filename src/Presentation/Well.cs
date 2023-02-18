@@ -7,6 +7,11 @@ public partial class Well : EntityTypeNode2DRenderSystem.IEntityNode2D
 {
     public Entity e { get; set; }
 
+    public EntityTypeComponent.EntityTypes EntityType => EntityTypeComponent.EntityTypes.Well;
+
+    [Export]
+    public int PlayerId { get; set; }
+
     public override void _Ready()
     {
         base._Ready();

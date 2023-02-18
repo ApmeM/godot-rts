@@ -1,6 +1,4 @@
-using System;
 using Godot;
-using GodotRts.Presentation.Utils;
 using LocomotorECS;
 
 public class World
@@ -53,27 +51,12 @@ public class World
     {
         foreach (Node2D child in map.GetChildren())
         {
-            Entity entity;
-            switch (child)
+            if (!(child is EntityTypeNode2DRenderSystem.IEntityNode2D etn))
             {
-                case ArtificialWell artificialWell:
-                    entity = Entities.BuildArificialWell();
-                    break;
-                case House house:
-                    entity = Entities.BuildHouse();
-                    break;
-                case Person person:
-                    entity = Entities.BuildPerson();
-                    break;
-                case Tree tree:
-                    entity = Entities.BuildTree();
-                    break;
-                case Well well:
-                    entity = Entities.BuildWell();
-                    break;
-                default:
-                    throw new Exception($"Type {child} not implemented in BuildFromDesignTime");
+                return;
             }
+
+            Entity entity = Entities.Build(etn.EntityType, etn.PlayerId);
 
             entity.GetComponent<PositionComponent>().Position = child.Position;
             this.el.Add(entity);
@@ -98,31 +81,31 @@ public class World
     public void BuildFence(int size, float stepX, float stepY)
     {
         Entity e;
-        e = Entities.BuildTree();
+        e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
         e.GetComponent<PositionComponent>().Position = new Vector2(0, 0);
         this.el.Add(e);
-        e = Entities.BuildTree();
+        e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
         e.GetComponent<PositionComponent>().Position = new Vector2(size * stepX, 0);
         this.el.Add(e);
-        e = Entities.BuildTree();
+        e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
         e.GetComponent<PositionComponent>().Position = new Vector2(0, size * stepY);
         this.el.Add(e);
-        e = Entities.BuildTree();
+        e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
         e.GetComponent<PositionComponent>().Position = new Vector2(size * stepX, size * stepY);
         this.el.Add(e);
 
         for (var i = 1; i < size; i++)
         {
-            e = Entities.BuildTree();
+            e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
             e.GetComponent<PositionComponent>().Position = new Vector2(0, i * stepY);
             this.el.Add(e);
-            e = Entities.BuildTree();
+            e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
             e.GetComponent<PositionComponent>().Position = new Vector2(i * stepX, 0);
             this.el.Add(e);
-            e = Entities.BuildTree();
+            e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
             e.GetComponent<PositionComponent>().Position = new Vector2(size * stepX, i * stepY);
             this.el.Add(e);
-            e = Entities.BuildTree();
+            e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
             e.GetComponent<PositionComponent>().Position = new Vector2(i * stepX, size * stepY);
             this.el.Add(e);
         }

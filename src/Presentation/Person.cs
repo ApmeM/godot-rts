@@ -8,6 +8,11 @@ public partial class Person : EntityTypeNode2DRenderSystem.IEntityNode2D, IMinim
 {
     public Entity e { get; set; }
 
+    public EntityTypeComponent.EntityTypes EntityType => EntityTypeComponent.EntityTypes.Person;
+
+    [Export]
+    public int PlayerId { get; set; }
+
     public bool VisibleOnBorder => false;
 
     public Texture Texture => this.sprite.Texture;

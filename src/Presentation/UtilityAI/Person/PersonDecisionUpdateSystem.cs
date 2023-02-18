@@ -4,7 +4,7 @@ using LocomotorECS;
 public class PersonDecisionUpdateSystem : MatcherEntitySystem
 {
     private MatcherEntityList waterSources;
-    private MatcherEntityList buildSources;
+    private EntityGroups<int> buildSources;
     private MatcherEntityList restSources;
 
     public PersonDecisionUpdateSystem() : base(new Matcher()
@@ -44,8 +44,9 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
             return;
         }
 
-        var biulder = entity.GetComponent<BuilderComponent>();
-        if (biulder != null && buildSources.Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
+        var builder = entity.GetComponent<BuilderComponent>();
+        var player = entity.GetComponent<PlayerComponent>();
+        if (builder != null && buildSources[player.PlayerId].Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
         {
             entity.GetComponent<PrintComponent>().Text = "Build";
             this.SetDecision<PersonDecisionBuildComponent>(entity);
@@ -80,7 +81,10 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
     protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
     {
         this.waterSources = new MatcherEntityList(entityList, new Matcher().All<DrinkableComponent>().All<PositionComponent>());
-        this.buildSources = new MatcherEntityList(entityList, new Matcher().All<ConstructionComponent>().All<PositionComponent>());
+        this.buildSources = new EntityGroups<int>(
+            new MatcherEntityList(entityList, new Matcher().All<ConstructionComponent>().All<PositionComponent>()),
+            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
+        );
         this.restSources = new MatcherEntityList(entityList, new Matcher().All<RestComponent>().All<PositionComponent>());
         return base.FilterEntityList(entityList);
     }

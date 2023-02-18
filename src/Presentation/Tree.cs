@@ -7,6 +7,11 @@ public partial class Tree : EntityTypeNode2DRenderSystem.IEntityNode2D, IMinimap
 {
     public Entity e { get; set; }
 
+    public EntityTypeComponent.EntityTypes EntityType => EntityTypeComponent.EntityTypes.Tree;
+
+    [Export]
+    public int PlayerId { get; set; }
+
     public bool VisibleOnBorder => false;
 
     public Texture Texture => this.sprite.Texture;

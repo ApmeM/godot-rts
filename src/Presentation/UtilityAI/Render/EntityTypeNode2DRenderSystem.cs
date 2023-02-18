@@ -9,6 +9,8 @@ public class EntityTypeNode2DRenderSystem : MatcherEntitySystem
     public interface IEntityNode2D
     {
         Entity e { set; }
+        EntityTypeComponent.EntityTypes EntityType { get; }
+        int PlayerId { get; }
     }
 
     private Dictionary<EntityTypeComponent.EntityTypes, PackedScene> sources;

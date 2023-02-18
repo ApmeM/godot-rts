@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -12,6 +11,9 @@ public partial class SelectedActions
     private World world;
     private MatcherEntityList selectedList;
     private bool enititiesCountChanged = true;
+
+    [Export]
+    public int PlayerId;
 
     public World World
     {
@@ -69,6 +71,7 @@ public partial class SelectedActions
         e.AddComponent<FollowMouseComponent>();
         e.AddComponent<BindToMapComponent>();
         e.AddComponent<SelectPositionMouseComponent>();
+        e.AddComponent<PlayerComponent>().PlayerId = this.PlayerId;
 
         world.el.Add(e);
     }

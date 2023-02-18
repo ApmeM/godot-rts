@@ -3,19 +3,20 @@ using LocomotorECS;
 
 public class BuildProcessUpdateSystem : MatcherEntitySystem
 {
-    private MatcherEntityList constructionSource;
+    private EntityGroups<int> constructionSource;
 
     public BuildProcessUpdateSystem() : base(new Matcher()
         .All<PersonDecisionBuildComponent>()
         .All<BuilderComponent>()
         .All<PositionComponent>()
+        .All<PlayerComponent>()
         .Exclude<FatigueSleepComponent>())
     {
     }
 
     protected override void DoAction(float delta)
     {
-        if (!constructionSource.Entities.Any())
+        if (!constructionSource.Any(a => a.Value.Entities.Any()))
         {
             return;
         }
@@ -28,8 +29,9 @@ public class BuildProcessUpdateSystem : MatcherEntitySystem
         base.DoAction(entity, delta);
 
         var position = entity.GetComponent<PositionComponent>();
+        var player = entity.GetComponent<PlayerComponent>();
 
-        var closestSource = constructionSource.Entities
+        var closestSource = constructionSource[player.PlayerId].Entities
                             .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
                             .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
                             .FirstOrDefault();
@@ -76,7 +78,10 @@ public class BuildProcessUpdateSystem : MatcherEntitySystem
 
     protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
     {
-        this.constructionSource = new MatcherEntityList(entityList, new Matcher().All<ConstructionComponent>());
+        this.constructionSource = new EntityGroups<int>(
+            new MatcherEntityList(entityList, new Matcher().All<ConstructionComponent>().All<PositionComponent>()),
+            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
+        );
         return base.FilterEntityList(entityList);
     }
 }

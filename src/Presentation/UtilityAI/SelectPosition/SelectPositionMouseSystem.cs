@@ -9,7 +9,8 @@ public class SelectPositionMouseSystem : MatcherEntitySystem
             .All<SelectPositionMouseComponent>()
             .All<MouseInputComponent>()
             .All<EntityTypeComponent>()
-            .All<PositionComponent>())
+            .All<PositionComponent>()
+            .All<PlayerComponent>())
     {
         this.world = parent;
     }
@@ -24,7 +25,8 @@ public class SelectPositionMouseSystem : MatcherEntitySystem
 
         var position = entity.GetComponent<PositionComponent>();
         var type = entity.GetComponent<EntityTypeComponent>();
-        var newEntity = Entities.Build(type.EntityType);
+        var player = entity.GetComponent<PlayerComponent>();
+        var newEntity = Entities.Build(type.EntityType, player.PlayerId);
         newEntity.GetComponent<PositionComponent>().Position = entity.GetComponent<PositionComponent>().Position;
         this.world.el.Add(newEntity);
         this.world.el.Remove(entity);
