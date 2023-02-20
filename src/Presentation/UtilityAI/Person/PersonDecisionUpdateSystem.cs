@@ -3,12 +3,13 @@ using LocomotorECS;
 
 public class PersonDecisionUpdateSystem : MatcherEntitySystem
 {
-    private MatcherEntityList waterSources;
-    private EntityGroups<int> buildSources;
-    private MatcherEntityList restSources;
+    private EntityLookup<int> waterSources;
+    private EntityLookup<int> constructionSource;
+    private EntityLookup<int> restSources;
 
     public PersonDecisionUpdateSystem() : base(new Matcher()
             .All<PersonComponent>()
+            .All<PlayerComponent>()
             .Exclude<FatigueSleepComponent>())
     {
     }
@@ -17,6 +18,7 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
     {
         base.DoAction(entity, delta);
 
+        var player = entity.GetComponent<PlayerComponent>();
         var position = entity.GetComponent<PositionComponent>();
 
         entity.GetOrCreateComponent<PersonDecisionDrinkComponent>();
@@ -28,7 +30,7 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
         if (thristing != null && (
             thristing.CurrentThristing < thristing.ThristThreshold ||
             thristing.CurrentThristing < thristing.MaxThristLevel && entity.GetComponent<PersonDecisionDrinkComponent>().Enabled
-        ) && waterSources.Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
+        ) && waterSources[0].Entities.Union(waterSources[player.PlayerId].Entities).Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
         {
             entity.GetComponent<PrintComponent>().Text = "Drink";
             this.SetDecision<PersonDecisionDrinkComponent>(entity);
@@ -37,7 +39,7 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
 
         var fatigue = entity.GetComponent<FatigueComponent>();
         if (fatigue != null && fatigue.CurrentFatigue > fatigue.FatigueThreshold &&
-            restSources.Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
+            restSources[player.PlayerId].Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
         {
             entity.GetComponent<PrintComponent>().Text = "Sleep";
             this.SetDecision<PersonDecisionSleepComponent>(entity);
@@ -45,8 +47,7 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
         }
 
         var builder = entity.GetComponent<BuilderComponent>();
-        var player = entity.GetComponent<PlayerComponent>();
-        if (builder != null && buildSources[player.PlayerId].Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
+        if (builder != null && constructionSource[player.PlayerId].Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
         {
             entity.GetComponent<PrintComponent>().Text = "Build";
             this.SetDecision<PersonDecisionBuildComponent>(entity);
@@ -80,12 +81,19 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
 
     protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
     {
-        this.waterSources = new MatcherEntityList(entityList, new Matcher().All<DrinkableComponent>().All<PositionComponent>());
-        this.buildSources = new EntityGroups<int>(
+        this.waterSources = new EntityLookup<int>(
+            new MatcherEntityList(entityList, new Matcher().All<DrinkableComponent>().All<PositionComponent>()),
+            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
+        );
+        this.constructionSource = new EntityLookup<int>(
             new MatcherEntityList(entityList, new Matcher().All<ConstructionComponent>().All<PositionComponent>()),
             e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
         );
-        this.restSources = new MatcherEntityList(entityList, new Matcher().All<RestComponent>().All<PositionComponent>());
+        this.restSources = new EntityLookup<int>(
+            new MatcherEntityList(entityList, new Matcher().All<RestComponent>().All<PositionComponent>()),
+            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
+        );
+        
         return base.FilterEntityList(entityList);
     }
 }

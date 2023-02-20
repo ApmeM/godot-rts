@@ -19,7 +19,7 @@ public partial class Main
         this.world = new World(this.map);
         this.world.BuildFromDesignTime();
         this.map.ClearChildren();
-        this.world.BuildFence(30, this.map.CellSize.x, this.map.CellSize.y);
+        this.world.BuildFence(60, this.map.CellSize.x, this.map.CellSize.y);
 
         this.selectedDetails.World = this.world;
         this.selectedActions.World = this.world;

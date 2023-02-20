@@ -3,7 +3,7 @@ using LocomotorECS;
 
 public class BuildProcessUpdateSystem : MatcherEntitySystem
 {
-    private EntityGroups<int> constructionSource;
+    private EntityLookup<int> constructionSource;
 
     public BuildProcessUpdateSystem() : base(new Matcher()
         .All<PersonDecisionBuildComponent>()
@@ -78,7 +78,7 @@ public class BuildProcessUpdateSystem : MatcherEntitySystem
 
     protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
     {
-        this.constructionSource = new EntityGroups<int>(
+        this.constructionSource = new EntityLookup<int>(
             new MatcherEntityList(entityList, new Matcher().All<ConstructionComponent>().All<PositionComponent>()),
             e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
         );

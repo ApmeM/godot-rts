@@ -3,19 +3,20 @@ using LocomotorECS;
 
 public class FatigueMoveUpdateSystem : MatcherEntitySystem
 {
-    private MatcherEntityList restSource;
+    private EntityLookup<int> restSources;
 
     public FatigueMoveUpdateSystem() : base(new Matcher()
         .All<PersonDecisionSleepComponent>()
         .All<PositionComponent>()
         .All<MovingComponent>()
+        .All<PlayerComponent>()
         .Exclude<FatigueSleepComponent>())
     {
     }
 
     protected override void DoAction(float delta)
     {
-        if (!restSource.Entities.Any())
+        if (!restSources.Any(a => a.Value.Entities.Any()))
         {
             return;
         }
@@ -28,8 +29,9 @@ public class FatigueMoveUpdateSystem : MatcherEntitySystem
         base.DoAction(entity, delta);
 
         var position = entity.GetComponent<PositionComponent>();
+        var player = entity.GetComponent<PlayerComponent>();
 
-        var closestSource = restSource.Entities
+        var closestSource = restSources[player.PlayerId].Entities
                             .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
                             .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
                             .FirstOrDefault();
@@ -46,7 +48,10 @@ public class FatigueMoveUpdateSystem : MatcherEntitySystem
 
     protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
     {
-        this.restSource = new MatcherEntityList(entityList, new Matcher().All<RestComponent>());
+        this.restSources = new EntityLookup<int>(
+            new MatcherEntityList(entityList, new Matcher().All<RestComponent>().All<PositionComponent>()),
+            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
+        );
         return base.FilterEntityList(entityList);
     }
 }
