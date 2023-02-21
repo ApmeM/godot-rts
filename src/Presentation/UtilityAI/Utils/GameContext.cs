@@ -12,9 +12,9 @@ public class GameContext
         this.MapToWorld = mapToWorld;
     }
 
-    public PathfindingMap Map = new PathfindingMap();
+    public readonly PathfindingMap Map = new PathfindingMap();
 
-    private Dictionary<PositionComponent, Vector2> KnownPositions = new Dictionary<PositionComponent, Vector2>();
+    private readonly Dictionary<PositionComponent, Vector2> KnownPositions = new Dictionary<PositionComponent, Vector2>();
     private Func<Vector2, Vector2> MapToWorld;
     private Func<Vector2, Vector2> WorldToMap;
 

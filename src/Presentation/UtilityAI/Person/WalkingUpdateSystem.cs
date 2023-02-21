@@ -4,7 +4,7 @@ using LocomotorECS;
 
 public class WalkingUpdateSystem : MatcherEntitySystem
 {
-    private Random r = new Random();
+    private readonly Random r = new Random();
 
     public WalkingUpdateSystem() 
         : base(new Matcher()

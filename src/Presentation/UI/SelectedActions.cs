@@ -12,6 +12,10 @@ public partial class SelectedActions
     private MatcherEntityList selectedList;
     private bool enititiesCountChanged = true;
 
+    private static readonly List<EntityTypeComponent.EntityTypes> commonActions = new List<EntityTypeComponent.EntityTypes>{
+                EntityTypeComponent.EntityTypes.ArtificialWell,
+                EntityTypeComponent.EntityTypes.House
+            };
     [Export]
     public int PlayerId;
 
@@ -46,10 +50,6 @@ public partial class SelectedActions
                 return;
             }
 
-            var commonActions = new List<EntityTypeComponent.EntityTypes>{
-                EntityTypeComponent.EntityTypes.ArtificialWell,
-                EntityTypeComponent.EntityTypes.House
-            };
 
             foreach (var action in commonActions)
             {

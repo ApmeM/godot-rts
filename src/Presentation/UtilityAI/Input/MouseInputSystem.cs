@@ -4,7 +4,7 @@ using LocomotorECS;
 public class MouseInputSystem : MatcherEntitySystem
 {
     private readonly Map parent;
-    private MouseInputComponent lastMouse = new MouseInputComponent();
+    private readonly MouseInputComponent lastMouse = new MouseInputComponent();
 
     public MouseInputSystem(Map parent) : base(new Matcher().All<MouseInputComponent>())
     {

@@ -17,8 +17,6 @@ public partial class Person : EntityTypeNode2DRenderSystem.IEntityNode2D, IMinim
 
     public Texture Texture => this.sprite.Texture;
 
-    public Random r = new Random();
-
     public override void _Ready()
     {
         base._Ready();
