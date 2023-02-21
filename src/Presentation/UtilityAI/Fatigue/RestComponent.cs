@@ -2,5 +2,5 @@ using LocomotorECS;
 
 public class RestComponent : Component
 {
-    public float Regeneration { get; set; }
+    public float Regeneration;
 }

@@ -3,9 +3,9 @@ using LocomotorECS;
 
 public class AvailabilityComponent : Component
 {
-    public int MaxNumberOfUsers { get; set; }
+    public int MaxNumberOfUsers;
 
-    public HashSet<Entity> CurrentUsers { get; private set; } = new HashSet<Entity>();
+    public readonly HashSet<Entity> CurrentUsers = new HashSet<Entity>();
 
     public bool IsAvailable(Entity entity)
     {

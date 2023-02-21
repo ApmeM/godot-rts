@@ -3,6 +3,6 @@ using LocomotorECS;
 
 public class PositionComponent : Component
 {
-    public Vector2 Position { get; set; }
-    public Vector2[] BlockingCells { get; set; } = new Vector2[0];
+    public Vector2 Position;
+    public Vector2[] BlockingCells = new Vector2[0];
 }

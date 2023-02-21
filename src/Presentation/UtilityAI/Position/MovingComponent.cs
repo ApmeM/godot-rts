@@ -4,9 +4,9 @@ using LocomotorECS;
 
 public class MovingComponent : Component
 {
-    public List<Vector2> Path { get; set; } = new List<Vector2>();
+    public List<Vector2> Path = new List<Vector2>();
 
-    public Vector2 PathTarget { get; set; } = Vector2.Inf;
+    public Vector2 PathTarget = Vector2.Inf;
 
-    public float MoveSpeed { get; set; }
+    public float MoveSpeed;
 }
