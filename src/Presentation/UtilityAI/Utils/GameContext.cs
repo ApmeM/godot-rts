@@ -10,9 +10,12 @@ public class GameContext
     {
         this.WorldToMap = worldToMap;
         this.MapToWorld = mapToWorld;
+        this.Map = new PathfindingMap();
+        this.Pathfinder = new AStarPathfinder<Vector2>(Map);
     }
 
-    public readonly PathfindingMap Map = new PathfindingMap();
+    public readonly PathfindingMap Map;
+    public readonly AStarPathfinder<Vector2> Pathfinder;
 
     private readonly Dictionary<PositionComponent, Vector2> KnownPositions = new Dictionary<PositionComponent, Vector2>();
     private Func<Vector2, Vector2> MapToWorld;
@@ -88,12 +91,12 @@ public class GameContext
     }
 
 
-    public List<Vector2> FindPath(Vector2 from, Vector2 to)
+    public IReadOnlyList<Vector2> FindPath(Vector2 from, Vector2 to)
     {
         var fromMap = this.WorldToMap(from);
         var toMap = this.WorldToMap(to);
 
-        var pathMap = AStarPathfinder.Search(this.Map, fromMap, toMap);
+        var pathMap = this.Pathfinder.Search(fromMap, toMap);
 
         if (pathMap == null)
         {
