@@ -3,19 +3,20 @@ using LocomotorECS;
 
 public class DrinkMoveUpdateSystem : MatcherEntitySystem
 {
-    private MatcherEntityList drinkSource;
+    private EntityLookup<int> waterSources;
 
-    public DrinkMoveUpdateSystem() : base(new Matcher()
+    public DrinkMoveUpdateSystem(EntityLookup<int> drinkSource) : base(new Matcher()
         .All<PersonDecisionDrinkComponent>()
         .All<MovingComponent>()
         .All<PositionComponent>()
         .Exclude<FatigueSleepComponent>())
     {
+        this.waterSources = drinkSource;
     }
 
     protected override void DoAction(float delta)
     {
-        if (!drinkSource.Entities.Any())
+        if (!waterSources.Any(a => a.Value.Entities.Any()))
         {
             return;
         }
@@ -28,8 +29,9 @@ public class DrinkMoveUpdateSystem : MatcherEntitySystem
         base.DoAction(entity, delta);
 
         var position = entity.GetComponent<PositionComponent>();
+        var player = entity.GetComponent<PlayerComponent>();
 
-        var closestSource = drinkSource.Entities
+        var closestSource = waterSources[0].Entities.Union(waterSources[player.PlayerId].Entities)
                             .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
                             .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
                             .FirstOrDefault();
@@ -41,11 +43,5 @@ public class DrinkMoveUpdateSystem : MatcherEntitySystem
         }
 
         entity.GetComponent<MovingComponent>().PathTarget = closestWater;
-    }
-
-    protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
-    {
-        this.drinkSource = new MatcherEntityList(entityList, new Matcher().All<DrinkableComponent>());
-        return base.FilterEntityList(entityList);
     }
 }

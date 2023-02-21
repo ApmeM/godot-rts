@@ -5,13 +5,14 @@ public class BuildMoveUpdateSystem : MatcherEntitySystem
 {
     private EntityLookup<int> constructionSource;
 
-    public BuildMoveUpdateSystem() : base(new Matcher()
+    public BuildMoveUpdateSystem(EntityLookup<int> constructionSource) : base(new Matcher()
         .All<PersonDecisionBuildComponent>()
         .All<MovingComponent>()
         .All<PositionComponent>()
         .All<PlayerComponent>()
         .Exclude<FatigueSleepComponent>())
     {
+        this.constructionSource = constructionSource;
     }
 
     protected override void DoAction(float delta)
@@ -43,14 +44,5 @@ public class BuildMoveUpdateSystem : MatcherEntitySystem
         }
 
         entity.GetComponent<MovingComponent>().PathTarget = closestConstruction;
-    }
-
-    protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
-    {
-        this.constructionSource = new EntityLookup<int>(
-            new MatcherEntityList(entityList, new Matcher().All<ConstructionComponent>().All<PositionComponent>()),
-            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
-        );
-        return base.FilterEntityList(entityList);
     }
 }

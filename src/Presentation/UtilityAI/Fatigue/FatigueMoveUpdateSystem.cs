@@ -5,13 +5,14 @@ public class FatigueMoveUpdateSystem : MatcherEntitySystem
 {
     private EntityLookup<int> restSources;
 
-    public FatigueMoveUpdateSystem() : base(new Matcher()
+    public FatigueMoveUpdateSystem(EntityLookup<int> restSources) : base(new Matcher()
         .All<PersonDecisionSleepComponent>()
         .All<PositionComponent>()
         .All<MovingComponent>()
         .All<PlayerComponent>()
         .Exclude<FatigueSleepComponent>())
     {
+        this.restSources = restSources;
     }
 
     protected override void DoAction(float delta)
@@ -44,14 +45,5 @@ public class FatigueMoveUpdateSystem : MatcherEntitySystem
         }
 
         entity.GetComponent<MovingComponent>().PathTarget = closestRest;
-    }
-
-    protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
-    {
-        this.restSources = new EntityLookup<int>(
-            new MatcherEntityList(entityList, new Matcher().All<RestComponent>().All<PositionComponent>()),
-            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
-        );
-        return base.FilterEntityList(entityList);
     }
 }

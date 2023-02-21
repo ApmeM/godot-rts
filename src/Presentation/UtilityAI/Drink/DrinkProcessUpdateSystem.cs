@@ -4,14 +4,25 @@ using LocomotorECS;
 
 public class DrinkProcessUpdateSystem : MatcherEntitySystem
 {
-    private MatcherEntityList drinkSource;
+    private EntityLookup<int> waterSources;
 
-    public DrinkProcessUpdateSystem() : base(new Matcher()
+    public DrinkProcessUpdateSystem(EntityLookup<int> drinkSource) : base(new Matcher()
         .All<PersonDecisionDrinkComponent>()
         .All<DrinkThristingComponent>()
         .All<PositionComponent>()
         .Exclude<FatigueSleepComponent>())
     {
+        this.waterSources = drinkSource;
+    }
+
+    protected override void DoAction(float delta)
+    {
+        if (!waterSources.Any(a => a.Value.Entities.Any()))
+        {
+            return;
+        }
+
+        base.DoAction(delta);
     }
 
     protected override void DoAction(Entity entity, float delta)
@@ -20,8 +31,9 @@ public class DrinkProcessUpdateSystem : MatcherEntitySystem
 
         var thristing = entity.GetComponent<DrinkThristingComponent>();
         var position = entity.GetComponent<PositionComponent>();
+        var player = entity.GetComponent<PlayerComponent>();
 
-        var closestSource = drinkSource.Entities
+        var closestSource = waterSources[0].Entities.Union(waterSources[player.PlayerId].Entities)
                             .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
                             .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
                             .FirstOrDefault();
@@ -41,11 +53,5 @@ public class DrinkProcessUpdateSystem : MatcherEntitySystem
         var toDrink = Mathf.Min(thristing.DrinkSpeed * delta, drinkable.CurrentAmount);
         drinkable.CurrentAmount -= toDrink;
         thristing.CurrentThristing += toDrink;
-    }
-
-    protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
-    {
-        this.drinkSource = new MatcherEntityList(entityList, new Matcher().All<DrinkableComponent>());
-        return base.FilterEntityList(entityList);
     }
 }

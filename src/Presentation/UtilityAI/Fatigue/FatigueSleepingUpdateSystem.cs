@@ -5,12 +5,13 @@ public class FatigueSleepingUpdateSystem : MatcherEntitySystem
 {
     private EntityLookup<int> restSources;
 
-    public FatigueSleepingUpdateSystem() : base(new Matcher()
+    public FatigueSleepingUpdateSystem(EntityLookup<int> restSources) : base(new Matcher()
         .All<FatigueSleepComponent>()
         .All<FatigueComponent>()
         .All<PositionComponent>()
         .All<PlayerComponent>())
     {
+        this.restSources = restSources;
     }
 
     protected override void DoAction(Entity entity, float delta)
@@ -47,14 +48,5 @@ public class FatigueSleepingUpdateSystem : MatcherEntitySystem
             entity.GetOrCreateComponent<FatigueSleepComponent>().Disable();
             return;
         }
-    }
-
-    protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
-    {
-        this.restSources = new EntityLookup<int>(
-            new MatcherEntityList(entityList, new Matcher().All<RestComponent>().All<PositionComponent>()),
-            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
-        );
-        return base.FilterEntityList(entityList);
     }
 }

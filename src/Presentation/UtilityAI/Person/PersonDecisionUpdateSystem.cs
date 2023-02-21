@@ -7,11 +7,17 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
     private EntityLookup<int> constructionSource;
     private EntityLookup<int> restSources;
 
-    public PersonDecisionUpdateSystem() : base(new Matcher()
+    public PersonDecisionUpdateSystem(
+        EntityLookup<int> waterSources, 
+        EntityLookup<int> constructionSource,
+        EntityLookup<int> restSources) : base(new Matcher()
             .All<PersonComponent>()
             .All<PlayerComponent>()
             .Exclude<FatigueSleepComponent>())
     {
+        this.waterSources = waterSources;
+        this.constructionSource = constructionSource;
+        this.restSources = restSources;
     }
 
     protected override void DoAction(Entity entity, float delta)
@@ -77,23 +83,5 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
         {
             entity.GetComponent<T2>().Enable();
         }
-    }
-
-    protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
-    {
-        this.waterSources = new EntityLookup<int>(
-            new MatcherEntityList(entityList, new Matcher().All<DrinkableComponent>().All<PositionComponent>()),
-            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
-        );
-        this.constructionSource = new EntityLookup<int>(
-            new MatcherEntityList(entityList, new Matcher().All<ConstructionComponent>().All<PositionComponent>()),
-            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
-        );
-        this.restSources = new EntityLookup<int>(
-            new MatcherEntityList(entityList, new Matcher().All<RestComponent>().All<PositionComponent>()),
-            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
-        );
-        
-        return base.FilterEntityList(entityList);
     }
 }

@@ -5,13 +5,14 @@ public class BuildProcessUpdateSystem : MatcherEntitySystem
 {
     private EntityLookup<int> constructionSource;
 
-    public BuildProcessUpdateSystem() : base(new Matcher()
+    public BuildProcessUpdateSystem(EntityLookup<int> constructionSource) : base(new Matcher()
         .All<PersonDecisionBuildComponent>()
         .All<BuilderComponent>()
         .All<PositionComponent>()
         .All<PlayerComponent>()
         .Exclude<FatigueSleepComponent>())
     {
+        this.constructionSource = constructionSource;
     }
 
     protected override void DoAction(float delta)
@@ -74,14 +75,5 @@ public class BuildProcessUpdateSystem : MatcherEntitySystem
                 hp.HP = hp.MaxHP;
             }
         }
-    }
-
-    protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
-    {
-        this.constructionSource = new EntityLookup<int>(
-            new MatcherEntityList(entityList, new Matcher().All<ConstructionComponent>().All<PositionComponent>()),
-            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
-        );
-        return base.FilterEntityList(entityList);
     }
 }

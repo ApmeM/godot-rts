@@ -10,27 +10,40 @@ public class World
         this.context = new GameContext(map.WorldToMap, (point) => map.MapToWorld(point));
         this.el = new EntityList();
 
+        var constructionSource = new EntityLookup<int>(
+            new MatcherEntityList(this.el, new Matcher().All<ConstructionComponent>().All<PositionComponent>()),
+            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
+        );
+        var restSources = new EntityLookup<int>(
+            new MatcherEntityList(el, new Matcher().All<RestComponent>().All<PositionComponent>()),
+            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
+        );
+        var waterSources = new EntityLookup<int>(
+            new MatcherEntityList(el, new Matcher().All<DrinkableComponent>().All<PositionComponent>()),
+            e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
+        );
+
         this.input_esl = new EntitySystemList(el);
         this.input_esl.Add(new MouseInputSystem(map));
 
         this.esl = new EntitySystemList(el);
-        this.esl.Add(new BuildMoveUpdateSystem());
-        this.esl.Add(new BuildProcessUpdateSystem());
+        this.esl.Add(new BuildMoveUpdateSystem(constructionSource));
+        this.esl.Add(new BuildProcessUpdateSystem(constructionSource));
         this.esl.Add(new DrinkableRegenerationUpdateSystem());
-        this.esl.Add(new DrinkMoveUpdateSystem());
-        this.esl.Add(new DrinkProcessUpdateSystem());
+        this.esl.Add(new DrinkMoveUpdateSystem(waterSources));
+        this.esl.Add(new DrinkProcessUpdateSystem(waterSources));
         this.esl.Add(new DrinkThristingDeathUpdateSystem());
         this.esl.Add(new DrinkThristingUpdateSystem());
         this.esl.Add(new FatigueProcessUpdateSystem());
-        this.esl.Add(new FatigueMoveUpdateSystem());
-        this.esl.Add(new FatigueSleepingUpdateSystem());
+        this.esl.Add(new FatigueMoveUpdateSystem(restSources));
+        this.esl.Add(new FatigueSleepingUpdateSystem(restSources));
         this.esl.Add(new FatigueSleepThristingSyncUpdateSystem());
         this.esl.Add(new FatigueToSleepUpdateSystem());
         this.esl.Add(new FollowMouseSystem());
         this.esl.Add(new MovingUpdateSystem(this.context));
         this.esl.Add(new PersonDecisionBuildAvailabilitySyncUpdateSystem());
         this.esl.Add(new PersonDecisionDrinkAvailabilitySyncUpdateSystem());
-        this.esl.Add(new PersonDecisionUpdateSystem());
+        this.esl.Add(new PersonDecisionUpdateSystem(waterSources, constructionSource, restSources));
         this.esl.Add(new PositionBindToMapSystem(this.context));
         this.esl.Add(new PositionUpdateSystem(this.context));
         this.esl.Add(new ReproductionUpdateSystem(el));
