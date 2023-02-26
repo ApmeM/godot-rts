@@ -58,15 +58,18 @@ PlayerId = 1
 
 [node name="Person10" parent="Map" instance=ExtResource( 2 )]
 position = Vector2( 772, 607 )
+PlayerId = 2
 
 [node name="Person11" parent="Map" instance=ExtResource( 2 )]
 position = Vector2( 869, 633 )
+PlayerId = 2
 
 [node name="Well" parent="Map" instance=ExtResource( 4 )]
 position = Vector2( 126, 151 )
 
 [node name="Well2" parent="Map" instance=ExtResource( 4 )]
 position = Vector2( 790, 652 )
+PlayerId = 2
 
 [node name="Tree" parent="Map" instance=ExtResource( 5 )]
 position = Vector2( 47, 142 )
@@ -126,6 +129,7 @@ PlayerId = 1
 
 [node name="House2" parent="Map" instance=ExtResource( 10 )]
 position = Vector2( 833, 574 )
+PlayerId = 2
 
 [node name="HUD" type="CanvasLayer" parent="."]
 

@@ -2,7 +2,6 @@ using BrainAI.Pathfinding;
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class GameContext
 {
@@ -20,6 +19,7 @@ public class GameContext
     private readonly Dictionary<PositionComponent, Vector2> KnownPositions = new Dictionary<PositionComponent, Vector2>();
     private Func<Vector2, Vector2> MapToWorld;
     private Func<Vector2, Vector2> WorldToMap;
+    private readonly List<Vector2> findPathResult = new List<Vector2>();
 
     public void UpdatePosition(PositionComponent context)
     {
@@ -100,9 +100,14 @@ public class GameContext
 
         if (pathMap == null)
         {
-            return pathMap;
+            return null;
         }
 
-        return pathMap.Select(a => this.MapToWorld(a)).ToList();
+        findPathResult.Clear();
+        foreach(var path in pathMap)
+        {
+            findPathResult.Add(this.MapToWorld(path));
+        }
+        return findPathResult;
     }
 }

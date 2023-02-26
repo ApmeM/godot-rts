@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using LocomotorECS;
 
 public class ReproductionUpdateSystem : MatcherEntitySystem
@@ -20,7 +19,7 @@ public class ReproductionUpdateSystem : MatcherEntitySystem
         base.DoAction(entity, delta);
 
         var avaiability = entity.GetComponent<AvailabilityComponent>();
-        if (avaiability.CurrentUsers.Count() <= 1)
+        if (avaiability.CurrentUsers.Count <= 1)
         {
             return;
         }
