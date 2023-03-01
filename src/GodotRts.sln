@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GodotRts", "GodotRts.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GodotRts.Tests", "..\test\GodotRts.Tests.csproj", "{434E31EC-4233-442D-9FE7-B76E9D46E1C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "core", "..\core\core.csproj", "{EB6D2C33-DDFB-4DF1-82D9-54290546CAD3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,14 @@ Global
 		{434E31EC-4233-442D-9FE7-B76E9D46E1C6}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
 		{434E31EC-4233-442D-9FE7-B76E9D46E1C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{434E31EC-4233-442D-9FE7-B76E9D46E1C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB6D2C33-DDFB-4DF1-82D9-54290546CAD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB6D2C33-DDFB-4DF1-82D9-54290546CAD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB6D2C33-DDFB-4DF1-82D9-54290546CAD3}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB6D2C33-DDFB-4DF1-82D9-54290546CAD3}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{EB6D2C33-DDFB-4DF1-82D9-54290546CAD3}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB6D2C33-DDFB-4DF1-82D9-54290546CAD3}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+		{EB6D2C33-DDFB-4DF1-82D9-54290546CAD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB6D2C33-DDFB-4DF1-82D9-54290546CAD3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

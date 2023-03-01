@@ -15,4 +15,7 @@
     <PackageReference Include="MazeGenerators" Version="2.4.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\core\core.csproj" />
+  </ItemGroup>
 </Project>

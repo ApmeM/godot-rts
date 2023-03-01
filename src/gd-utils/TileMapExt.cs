@@ -22,5 +22,22 @@ namespace GodotRts.Presentation.Utils
             var localPosition = tileMap.MapToWorld(map);
             return tileMap.ToGlobal(localPosition);
         }
+
+
+        public static System.Numerics.Vector2 MapToWorld(this TileMap tileMap, System.Numerics.Vector2 v)
+        {
+            var gv = new Vector2(v.X,v.Y);
+            var rgv = tileMap.MapToWorld(gv);
+            var rv = new System.Numerics.Vector2(rgv.x, rgv.y);
+            return rv;
+        }
+
+        public static System.Numerics.Vector2 WorldToMap(this TileMap tileMap, System.Numerics.Vector2 v)
+        {
+            var gv = new Vector2(v.X,v.Y);
+            var rgv = tileMap.WorldToMap(gv);
+            var rv = new System.Numerics.Vector2(rgv.x, rgv.y);
+            return rv;
+        }
     }
 }

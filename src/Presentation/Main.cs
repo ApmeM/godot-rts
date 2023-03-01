@@ -16,11 +16,11 @@ public partial class Main
         // For debug purposes all achievements can be reset
         this.di.localAchievementRepository.ResetAchievements();
 
-        this.world = new World(this.map);
-        this.world.BuildFromDesignTime();
+        this.world = new World(map.WorldToMap, map.MapToWorld);
+        this.world.AddGodotSpecific(this.map);
+        this.world.BuildFromDesignTime(this.map);
         this.map.ClearChildren();
         this.world.BuildFence(60, this.map.CellSize.x, this.map.CellSize.y);
-
         this.selectedDetails.World = this.world;
         this.selectedActions.World = this.world;
     }
