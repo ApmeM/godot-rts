@@ -7,3 +7,4 @@ build/
 *.import
 .vscode/
 *.user
+.idea/

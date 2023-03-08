@@ -1,6 +1,6 @@
 <Project Sdk="Godot.NET.Sdk/3.3.0">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>GodotRts</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
@@ -11,7 +11,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="GodotAnalysersattribute" Version="1.6.4" />
-    <PackageReference Include="LocomotorECS" Version="1.9.2" />
+    <PackageReference Include="LocomotorECS" Version="1.10.0" />
     <PackageReference Include="MazeGenerators" Version="2.4.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
