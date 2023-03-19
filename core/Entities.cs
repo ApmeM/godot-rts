@@ -7,6 +7,7 @@ public class Entities
     public static Entity Build(EntityTypeComponent.EntityTypes type, int playerId){
         var e = Build(type);
         e.AddComponent<PlayerComponent>().PlayerId = playerId;
+        e.Tag = (int)type;
         return e;
     }
 

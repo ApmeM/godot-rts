@@ -101,4 +101,24 @@ public class World
             this.el.Add(e);
         }
     }
+
+    public void BuildForTest(float stepX, float stepY)
+    {
+        const int myPlayerId = 1;
+        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Well, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(2 * stepX, 2 * stepY);
+
+        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.House, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(5 * stepX, 2 * stepY);
+        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.House, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(5 * stepX, 7 * stepY);
+        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.House, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(5 * stepX, 12 * stepY);
+
+        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.ArtificialWell, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(10 * stepX, 2 * stepY);
+        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.ArtificialWell, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(10 * stepX, 7 * stepY);
+        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.ArtificialWell, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(10 * stepX, 12 * stepY);
+
+        for (var i = 0; i < 10; i++)
+            for (var j = 0; j < 10; j++)
+            {
+                el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Person, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2((15 + i) * stepX, (15 + j) * stepY);
+            }
+    }
 }

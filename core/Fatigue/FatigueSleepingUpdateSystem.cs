@@ -1,10 +1,16 @@
-using System.Linq;
+using System;
 using System.Numerics;
+using HonkPerf.NET.RefLinq;
+using HonkPerf.NET.RefLinq.Enumerators;
 using LocomotorECS;
 
 public class FatigueSleepingUpdateSystem : MatcherEntitySystem
 {
     private EntityLookup<int> restSources;
+
+    private readonly CommonLambdas.EntityData entityData;
+    private MultiHashSetWrapper<Entity> wrapper;
+    private RefLinqEnumerable<Entity, OrderBy<Entity, Where<Entity, MultiHashSetWrapperEnumerator<Entity>>, float>> query;
 
     public FatigueSleepingUpdateSystem(EntityLookup<int> restSources) : base(new Matcher()
         .All<FatigueSleepComponent>()
@@ -13,6 +19,11 @@ public class FatigueSleepingUpdateSystem : MatcherEntitySystem
         .All<PlayerComponent>())
     {
         this.restSources = restSources;
+        this.entityData = new CommonLambdas.EntityData();
+        this.wrapper = new MultiHashSetWrapper<Entity>();
+        this.query = this.wrapper.ToRefLinq()
+            .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
+            .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
     }
 
     protected override void DoAction(Entity entity, float delta)
@@ -23,10 +34,10 @@ public class FatigueSleepingUpdateSystem : MatcherEntitySystem
         var position = entity.GetComponent<PositionComponent>();
         var player = entity.GetComponent<PlayerComponent>();
 
-        var closestSource = restSources[player.PlayerId].Entities
-                            .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
-                            .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
-                            .FirstOrDefault();
+        this.entityData.Entity = entity;
+
+        wrapper.Set = restSources[player.PlayerId].Entities;
+        var closestSource = query.FirstOrDefault();
         var closestRest = closestSource?.GetComponent<PositionComponent>()?.Position ?? Vector2Ext.Inf;
 
         if (position.Position != closestRest || closestRest == Vector2Ext.Inf)

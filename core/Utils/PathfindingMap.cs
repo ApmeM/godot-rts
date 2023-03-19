@@ -30,7 +30,7 @@ public class PathfindingMap : IAstarGraph<Vector2>
         return !this.Map.ContainsKey(node);
     }
 
-    public IEnumerable<Vector2> GetNeighbors(Vector2 node)
+    public List<Vector2> GetNeighbors(Vector2 node)
     {
         this.neighbors.Clear();
 

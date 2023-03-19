@@ -1,11 +1,17 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Numerics;
+using HonkPerf.NET.RefLinq;
+using HonkPerf.NET.RefLinq.Enumerators;
 using LocomotorECS;
 
 public class DrinkProcessUpdateSystem : MatcherEntitySystem
 {
     private EntityLookup<int> waterSources;
+
+    private readonly CommonLambdas.EntityData entityData;
+    private MultiHashSetWrapper<Entity> wrapper;
+    private RefLinqEnumerable<Entity, OrderBy<Entity, Where<Entity, MultiHashSetWrapperEnumerator<Entity>>, float>> query;
 
     public DrinkProcessUpdateSystem(EntityLookup<int> drinkSource) : base(new Matcher()
         .All<PersonDecisionDrinkComponent>()
@@ -14,11 +20,16 @@ public class DrinkProcessUpdateSystem : MatcherEntitySystem
         .Exclude<FatigueSleepComponent>())
     {
         this.waterSources = drinkSource;
+        this.entityData = new CommonLambdas.EntityData();
+        this.wrapper = new MultiHashSetWrapper<Entity>();
+        this.query = this.wrapper.ToRefLinq()
+            .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
+            .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
     }
 
     protected override void DoAction(float delta)
     {
-        if (!waterSources.Any(a => a.Value.Entities.Any()))
+        if (!waterSources.ToRefLinq().Where(a => a.Value.Entities.Count > 0).Any())
         {
             return;
         }
@@ -34,11 +45,24 @@ public class DrinkProcessUpdateSystem : MatcherEntitySystem
         var position = entity.GetComponent<PositionComponent>();
         var player = entity.GetComponent<PlayerComponent>();
 
-        var closestSource = waterSources[0].Entities.Union(waterSources[player.PlayerId].Entities)
-                            .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
-                            .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
-                            .FirstOrDefault();
+        this.entityData.Entity = entity;
+        
+        wrapper.Set = waterSources[0].Entities;
+        var closestNeutralSource = query.FirstOrDefault();
+        wrapper.Set = waterSources[player.PlayerId].Entities;
+        var closestSelfSource = query.FirstOrDefault();
 
+        var closestSource = closestNeutralSource == null
+            ? closestSelfSource
+            : closestSelfSource == null
+                ? closestNeutralSource
+                : (closestNeutralSource.GetComponent<PositionComponent>().Position -
+                   entity.GetComponent<PositionComponent>().Position).LengthSquared() >
+                  (closestSelfSource.GetComponent<PositionComponent>().Position -
+                   entity.GetComponent<PositionComponent>().Position).LengthSquared()
+                    ? closestSelfSource
+                    : closestNeutralSource;
+        
         var closestWater = closestSource?.GetComponent<PositionComponent>()?.Position ?? Vector2Ext.Inf;
         if (position.Position != closestWater)
         {

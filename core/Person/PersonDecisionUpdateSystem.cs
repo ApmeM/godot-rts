@@ -1,14 +1,21 @@
-using System.Linq;
+using System;
+using System.Collections.Generic;
+using HonkPerf.NET.RefLinq;
+using HonkPerf.NET.RefLinq.Enumerators;
 using LocomotorECS;
 
 public class PersonDecisionUpdateSystem : MatcherEntitySystem
 {
-    private EntityLookup<int> waterSources;
-    private EntityLookup<int> constructionSource;
-    private EntityLookup<int> restSources;
+    private readonly EntityLookup<int> waterSources;
+    private readonly EntityLookup<int> constructionSource;
+    private readonly EntityLookup<int> restSources;
+
+    private readonly CommonLambdas.EntityData entityData;
+    private MultiHashSetWrapper<Entity> wrapper;
+    private readonly RefLinqEnumerable<Entity, Where<Entity, MultiHashSetWrapperEnumerator<Entity>>> query;
 
     public PersonDecisionUpdateSystem(
-        EntityLookup<int> waterSources, 
+        EntityLookup<int> waterSources,
         EntityLookup<int> constructionSource,
         EntityLookup<int> restSources) : base(new Matcher()
             .All<PersonComponent>()
@@ -18,6 +25,22 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
         this.waterSources = waterSources;
         this.constructionSource = constructionSource;
         this.restSources = restSources;
+
+        this.entityData = new CommonLambdas.EntityData();
+        this.wrapper = new MultiHashSetWrapper<Entity>();
+        this.query = this.wrapper.ToRefLinq().Where(CommonLambdas.GetAvailabilityLambda(this.entityData));
+    }
+
+    protected override void OnEntityListChanged(HashSet<Entity> added, HashSet<Entity> changed, HashSet<Entity> removed)
+    {
+        base.OnEntityListChanged(added, changed, removed);
+        foreach (var entity in added)
+        {
+            entity.GetOrCreateComponent<PersonDecisionDrinkComponent>();
+            entity.GetOrCreateComponent<PersonDecisionSleepComponent>();
+            entity.GetOrCreateComponent<PersonDecisionBuildComponent>();
+            entity.GetOrCreateComponent<PersonDecisionWalkComponent>();
+        }
     }
 
     protected override void DoAction(Entity entity, float delta)
@@ -25,35 +48,38 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
         base.DoAction(entity, delta);
 
         var player = entity.GetComponent<PlayerComponent>();
-        var position = entity.GetComponent<PositionComponent>();
 
-        entity.GetOrCreateComponent<PersonDecisionDrinkComponent>();
-        entity.GetOrCreateComponent<PersonDecisionSleepComponent>();
-        entity.GetOrCreateComponent<PersonDecisionBuildComponent>();
-        entity.GetOrCreateComponent<PersonDecisionWalkComponent>();
+        this.entityData.Entity = entity;
 
         var thristing = entity.GetComponent<DrinkThristingComponent>();
         if (thristing != null && (
-            thristing.CurrentThristing < thristing.ThristThreshold ||
-            thristing.CurrentThristing < thristing.MaxThristLevel && entity.GetComponent<PersonDecisionDrinkComponent>().Enabled
-        ) && waterSources[0].Entities.Union(waterSources[player.PlayerId].Entities).Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
+                thristing.CurrentThristing < thristing.ThristThreshold ||
+                thristing.CurrentThristing < thristing.MaxThristLevel && entity.GetComponent<PersonDecisionDrinkComponent>().Enabled))
         {
-            entity.GetComponent<PrintComponent>().Text = "Drink";
-            this.SetDecision<PersonDecisionDrinkComponent>(entity);
-            return;
+            wrapper.Set = waterSources[0].Entities;
+            var result = query.Any();
+            wrapper.Set = waterSources[player.PlayerId].Entities;
+            result = result || query.Any();
+            if (result)
+            {
+                entity.GetComponent<PrintComponent>().Text = "Drink";
+                this.SetDecision<PersonDecisionDrinkComponent>(entity);
+                return;
+            }
         }
 
+        wrapper.Set = restSources[player.PlayerId].Entities;
         var fatigue = entity.GetComponent<FatigueComponent>();
-        if (fatigue != null && fatigue.CurrentFatigue > fatigue.FatigueThreshold &&
-            restSources[player.PlayerId].Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
+        if (fatigue != null && fatigue.CurrentFatigue > fatigue.FatigueThreshold && query.Any())
         {
             entity.GetComponent<PrintComponent>().Text = "Sleep";
             this.SetDecision<PersonDecisionSleepComponent>(entity);
             return;
         }
 
+        wrapper.Set = constructionSource[player.PlayerId].Entities;
         var builder = entity.GetComponent<BuilderComponent>();
-        if (builder != null && constructionSource[player.PlayerId].Entities.Where(a => a.GetComponent<AvailabilityComponent>().IsAvailable(entity)).Any())
+        if (builder != null && query.Any())
         {
             entity.GetComponent<PrintComponent>().Text = "Build";
             this.SetDecision<PersonDecisionBuildComponent>(entity);

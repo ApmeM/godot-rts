@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <RootNamespace>Core</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="BrainAI" Version="4.0.0" />
+    <PackageReference Include="BrainAI" Version="5.0.0" />
     <PackageReference Include="FateRandom" Version="1.0.0" />
-    <PackageReference Include="LocomotorECS" Version="1.9.2" />
+    <PackageReference Include="LocomotorECS" Version="2.0.2" />
     <PackageReference Include="MazeGenerators" Version="2.4.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>

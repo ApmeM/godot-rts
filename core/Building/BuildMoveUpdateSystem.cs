@@ -1,10 +1,17 @@
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Numerics;
+using HonkPerf.NET.RefLinq;
+using HonkPerf.NET.RefLinq.Enumerators;
 using LocomotorECS;
 
 public class BuildMoveUpdateSystem : MatcherEntitySystem
 {
     private EntityLookup<int> constructionSource;
+
+    private readonly CommonLambdas.EntityData entityData;
+    private MultiHashSetWrapper<Entity> wrapper;
+    private RefLinqEnumerable<Entity, OrderBy<Entity, Where<Entity, MultiHashSetWrapperEnumerator<Entity>>, float>> query;
 
     public BuildMoveUpdateSystem(EntityLookup<int> constructionSource) : base(new Matcher()
         .All<PersonDecisionBuildComponent>()
@@ -14,11 +21,16 @@ public class BuildMoveUpdateSystem : MatcherEntitySystem
         .Exclude<FatigueSleepComponent>())
     {
         this.constructionSource = constructionSource;
+        this.entityData = new CommonLambdas.EntityData();
+        this.wrapper = new MultiHashSetWrapper<Entity>();
+        this.query = this.wrapper.ToRefLinq()
+            .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
+            .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
     }
 
     protected override void DoAction(float delta)
     {
-        if (!constructionSource.Any(a => a.Value.Entities.Any()))
+        if (!constructionSource.ToRefLinq().Where(a => a.Value.Entities.Count > 0).Any())
         {
             return;
         }
@@ -33,10 +45,10 @@ public class BuildMoveUpdateSystem : MatcherEntitySystem
         var position = entity.GetComponent<PositionComponent>();
         var player = entity.GetComponent<PlayerComponent>();
 
-        var closestSource = constructionSource[player.PlayerId].Entities
-                            .Where(a => a.GetComponent<AvailabilityComponent>()?.IsAvailable(entity) ?? true)
-                            .OrderBy(a => (a.GetComponent<PositionComponent>().Position - position.Position).LengthSquared())
-                            .FirstOrDefault();
+        this.entityData.Entity = entity;
+
+        wrapper.Set = constructionSource[player.PlayerId].Entities;
+        var closestSource = query.FirstOrDefault();
 
         var closestConstruction = closestSource?.GetComponent<PositionComponent>()?.Position ?? Vector2Ext.Inf;
         if (position.Position == closestConstruction)

@@ -26,7 +26,7 @@ public class SelectPositionMouseSystem : MatcherEntitySystem
         var type = entity.GetComponent<EntityTypeComponent>();
         var player = entity.GetComponent<PlayerComponent>();
         var newEntity = Entities.Build(type.EntityType, player.PlayerId);
-        newEntity.GetComponent<PositionComponent>().Position = entity.GetComponent<PositionComponent>().Position;
+        newEntity.GetComponent<PositionComponent>().Position = position.Position;
         this.world.el.Add(newEntity);
         this.world.el.Remove(entity);
     }

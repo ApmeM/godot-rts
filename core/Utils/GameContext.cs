@@ -14,7 +14,7 @@ public class GameContext
     }
 
     public readonly PathfindingMap Map;
-    public readonly AStarPathfinder<Vector2> Pathfinder;
+    public readonly IPathfinder<Vector2> Pathfinder;
 
     private readonly Dictionary<PositionComponent, Vector2> KnownPositions = new Dictionary<PositionComponent, Vector2>();
     private Func<Vector2, Vector2> MapToWorld;
@@ -104,7 +104,7 @@ public class GameContext
         }
 
         findPathResult.Clear();
-        foreach(var path in pathMap)
+        foreach(var path in (List<Vector2>)pathMap)
         {
             findPathResult.Add(this.MapToWorld(path));
         }
