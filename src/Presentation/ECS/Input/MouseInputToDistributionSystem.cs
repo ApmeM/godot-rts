@@ -1,12 +1,12 @@
 using Godot;
 using LocomotorECS;
 
-public class MouseInputSystem : MatcherEntitySystem
+public class MouseInputToDistributionSystem : MatcherEntitySystem
 {
     private readonly Map parent;
-    private readonly MouseInputComponent lastMouse = new MouseInputComponent();
+    private readonly MouseInputDistributionComponent lastMouse = new MouseInputDistributionComponent();
 
-    public MouseInputSystem(Map parent) : base(new Matcher().All<MouseInputComponent>())
+    public MouseInputToDistributionSystem(Map parent) : base(new Matcher().All<MouseInputDistributionComponent>())
     {
         this.parent = parent;
         this.parent.UnhandledInput += UnhandledInput;
@@ -14,7 +14,7 @@ public class MouseInputSystem : MatcherEntitySystem
 
     protected override void DoAction(Entity entity, float delta)
     {
-        var currentMouse = entity.GetComponent<MouseInputComponent>();
+        var currentMouse = entity.GetComponent<MouseInputDistributionComponent>();
         var buttonsChanged = currentMouse.MouseButtons ^ lastMouse.MouseButtons;
 
         currentMouse.MousePosition = lastMouse.MousePosition;

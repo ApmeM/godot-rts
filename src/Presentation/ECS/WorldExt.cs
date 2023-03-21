@@ -21,7 +21,9 @@ public static class WorldExt
 
     public static void AddGodotSpecific(this World world, Map map)
     {
-        world.input_esl.Add(new MouseInputSystem(map));
+        world.input_esl.Add(new MouseInputToDistributionSystem(map));
+        world.input_esl.AddExecutionOrder<MouseInputToDistributionSystem, MouseInputDistributeSystem>();
+
         world.render_esl.Add(new EntityTypeNode2DRenderSystem(map));
         world.render_esl.Add(new Node2DPositionRenderSystem());
         world.render_esl.Add(new Node2DDyingRenderSystem());

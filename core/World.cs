@@ -9,6 +9,11 @@ public class World
         this.context = new GameContext(worldToMap, mapToWorld);
         this.el = new EntityList();
 
+        var input = this.el.Add(new Entity());
+        input.AddComponent<MouseInputDistributionComponent>();
+
+        this.el.CommitChanges();
+
         var constructionSource = new EntityLookup<int>(
             new MatcherEntityList(this.el, new Matcher().All<ConstructionComponent>().All<PositionComponent>()),
             e => e.GetComponent<PlayerComponent>()?.PlayerId ?? 0
@@ -23,6 +28,7 @@ public class World
         );
 
         this.input_esl = new EntitySystemList(el);
+        this.input_esl.Add(new MouseInputDistributeSystem());
 
         this.esl = new EntitySystemList(el);
         this.esl.Add(new BuildMoveUpdateSystem(constructionSource));
