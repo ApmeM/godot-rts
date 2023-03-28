@@ -2,10 +2,13 @@ using LocomotorECS;
 
 public class FatigueToSleepUpdateSystem : MatcherEntitySystem
 {
-    public FatigueToSleepUpdateSystem() : base(new Matcher()
+    private readonly Entity notification;
+
+    public FatigueToSleepUpdateSystem(Entity notification) : base(new Matcher()
         .All<FatigueComponent>()
         .Exclude<FatigueSleepComponent>())
     {
+        this.notification = notification;
     }
 
     protected override void DoAction(Entity entity, float delta)
@@ -16,7 +19,8 @@ public class FatigueToSleepUpdateSystem : MatcherEntitySystem
 
         if (fatigue.CurrentFatigue > fatigue.MaxFatigue)
         {
-            entity.GetOrCreateComponent<FatigueSleepComponent>().Enable();
+            entity.GetComponent<FatigueSleepComponent>().Enable();
+            this.notification.GetComponent<NotificationComponent>().SleepingOnTheGround = true;
         }
     }
 }

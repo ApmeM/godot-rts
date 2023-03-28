@@ -18,11 +18,11 @@ public class SelectingEntitySystem : MatcherEntitySystem
         {
             if ((mouse.MousePosition - position.Position).LengthSquared() < 256)
             {
-                entity.GetOrCreateComponent<SelectedComponent>().Enable();
+                entity.GetComponent<SelectedComponent>().Enable();
             }
             else
             {
-                entity.GetOrCreateComponent<SelectedComponent>().Disable();
+                entity.GetComponent<SelectedComponent>().Disable();
             }
         }
     }

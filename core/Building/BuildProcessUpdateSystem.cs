@@ -68,7 +68,7 @@ public class BuildProcessUpdateSystem : MatcherEntitySystem
             return;
         }
 
-        closestSource.GetOrCreateComponent<AvailabilityComponent>()?.CurrentUsers.Add(entity);
+        closestSource.GetComponent<AvailabilityComponent>()?.CurrentUsers.Add(entity);
         entity.GetComponent<PersonDecisionBuildComponent>().SelectedConstruction = closestSource;
 
         var builder = entity.GetComponent<BuilderComponent>();

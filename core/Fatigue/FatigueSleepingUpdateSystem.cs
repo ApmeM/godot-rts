@@ -57,7 +57,7 @@ public class FatigueSleepingUpdateSystem : MatcherEntitySystem
         {
             closestSource?.GetComponent<AvailabilityComponent>()?.CurrentUsers.Remove(entity);
             fatigue.CurrentFatigue = 0;
-            entity.GetOrCreateComponent<FatigueSleepComponent>().Disable();
+            entity.GetComponent<FatigueSleepComponent>().Disable();
             return;
         }
     }

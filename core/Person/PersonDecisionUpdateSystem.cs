@@ -31,18 +31,6 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
         this.query = this.wrapper.ToRefLinq().Where(CommonLambdas.GetAvailabilityLambda(this.entityData));
     }
 
-    protected override void OnEntityListChanged(HashSet<Entity> added, HashSet<Entity> changed, HashSet<Entity> removed)
-    {
-        base.OnEntityListChanged(added, changed, removed);
-        foreach (var entity in added)
-        {
-            entity.GetOrCreateComponent<PersonDecisionDrinkComponent>();
-            entity.GetOrCreateComponent<PersonDecisionSleepComponent>();
-            entity.GetOrCreateComponent<PersonDecisionBuildComponent>();
-            entity.GetOrCreateComponent<PersonDecisionWalkComponent>();
-        }
-    }
-
     protected override void DoAction(Entity entity, float delta)
     {
         base.DoAction(entity, delta);

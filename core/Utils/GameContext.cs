@@ -7,8 +7,8 @@ public class GameContext
 {
     public GameContext(Func<Vector2, Vector2> worldToMap, Func<Vector2, Vector2> mapToWorld)
     {
-        this.WorldToMap = worldToMap;
-        this.MapToWorld = mapToWorld;
+        this.worldToMap = worldToMap;
+        this.mapToWorld = mapToWorld;
         this.Map = new PathfindingMap();
         this.Pathfinder = new AStarPathfinder<Vector2>(Map);
     }
@@ -16,9 +16,9 @@ public class GameContext
     public readonly PathfindingMap Map;
     public readonly IPathfinder<Vector2> Pathfinder;
 
-    private readonly Dictionary<PositionComponent, Vector2> KnownPositions = new Dictionary<PositionComponent, Vector2>();
-    private Func<Vector2, Vector2> MapToWorld;
-    private Func<Vector2, Vector2> WorldToMap;
+    private readonly Dictionary<PositionComponent, Vector2> knownPositions = new Dictionary<PositionComponent, Vector2>();
+    private readonly Func<Vector2, Vector2> mapToWorld;
+    private readonly Func<Vector2, Vector2> worldToMap;
     private readonly List<Vector2> findPathResult = new List<Vector2>();
 
     public void UpdatePosition(PositionComponent context)
@@ -28,10 +28,10 @@ public class GameContext
             return;
         }
 
-        if (this.KnownPositions.ContainsKey(context))
+        if (this.knownPositions.ContainsKey(context))
         {
-            var newPos = this.WorldToMap(context.Position);
-            var oldPos = this.KnownPositions[context];
+            var newPos = this.worldToMap(context.Position);
+            var oldPos = this.knownPositions[context];
             if (oldPos == newPos)
             {
                 return;
@@ -44,19 +44,19 @@ public class GameContext
 
     public Vector2 GetCellPosition(Vector2 pos)
     {
-        return this.MapToWorld(this.WorldToMap(pos));
+        return this.mapToWorld(this.worldToMap(pos));
     }
 
     public void AddPosition(PositionComponent context)
     {
-        var newPos = this.WorldToMap(context.Position);
+        var newPos = this.worldToMap(context.Position);
         if (context.BlockingCells.Length == 0)
         {
             return;
         }
 
-        System.Diagnostics.Debug.Assert(!this.KnownPositions.ContainsKey(context));
-        this.KnownPositions[context] = newPos;
+        System.Diagnostics.Debug.Assert(!this.knownPositions.ContainsKey(context));
+        this.knownPositions[context] = newPos;
         foreach (var dir in context.BlockingCells)
         {
             var cell = newPos + dir;
@@ -72,10 +72,10 @@ public class GameContext
             return;
         }
 
-        System.Diagnostics.Debug.Assert(this.KnownPositions.ContainsKey(context));
+        System.Diagnostics.Debug.Assert(this.knownPositions.ContainsKey(context));
 
-        var prevPos = this.KnownPositions[context];
-        this.KnownPositions.Remove(context);
+        var prevPos = this.knownPositions[context];
+        this.knownPositions.Remove(context);
         foreach (var dir in context.BlockingCells)
         {
             var cell = prevPos + dir;
@@ -87,14 +87,14 @@ public class GameContext
     public void ClearMap()
     {
         this.Map.Clear();
-        this.KnownPositions.Clear();
+        this.knownPositions.Clear();
     }
 
 
-    public IReadOnlyList<Vector2> FindPath(Vector2 from, Vector2 to)
+    public List<Vector2> FindPath(Vector2 from, Vector2 to)
     {
-        var fromMap = this.WorldToMap(from);
-        var toMap = this.WorldToMap(to);
+        var fromMap = this.worldToMap(from);
+        var toMap = this.worldToMap(to);
 
         var pathMap = this.Pathfinder.Search(fromMap, toMap);
 
@@ -106,7 +106,7 @@ public class GameContext
         findPathResult.Clear();
         foreach(var path in (List<Vector2>)pathMap)
         {
-            findPathResult.Add(this.MapToWorld(path));
+            findPathResult.Add(this.mapToWorld(path));
         }
         return findPathResult;
     }

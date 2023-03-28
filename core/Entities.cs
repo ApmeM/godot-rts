@@ -1,42 +1,50 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using LocomotorECS;
 
 public class Entities
 {
-    public static Entity Build(EntityTypeComponent.EntityTypes type, int playerId){
-        var e = Build(type);
-        e.AddComponent<PlayerComponent>().PlayerId = playerId;
-        e.Tag = (int)type;
-        return e;
-    }
+    private static Dictionary<EntityTypeComponent.EntityTypes, Stack<Entity>> cache =
+        new Dictionary<EntityTypeComponent.EntityTypes, Stack<Entity>>();
 
-    private static Entity Build(EntityTypeComponent.EntityTypes type)
+    public static Entity Build(EntityTypeComponent.EntityTypes type, int playerId)
     {
+        var entity = cache.ContainsKey(type) ? cache[type].Count > 0 ? cache[type].Pop() : new Entity() : new Entity();
+
+        entity.Tag = (int)type;
+
+        entity.GetOrCreateComponent<PlayerComponent>().PlayerId = playerId;
+        entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = type;
+
         switch (type)
         {
-            case EntityTypeComponent.EntityTypes.ArtificialWell: return BuildArificialWell();
-            case EntityTypeComponent.EntityTypes.House: return BuildHouse();
-            case EntityTypeComponent.EntityTypes.Person: return BuildPerson();
-            case EntityTypeComponent.EntityTypes.Tree: return BuildTree();
-            case EntityTypeComponent.EntityTypes.Well: return BuildWell();
+            case EntityTypeComponent.EntityTypes.ArtificialWell: return BuildArificialWell(entity);
+            case EntityTypeComponent.EntityTypes.House: return BuildHouse(entity);
+            case EntityTypeComponent.EntityTypes.Person: return BuildPerson(entity);
+            case EntityTypeComponent.EntityTypes.Tree: return BuildTree(entity);
+            case EntityTypeComponent.EntityTypes.Well: return BuildWell(entity);
             default: throw new Exception("");
         }
     }
 
-    private static Entity BuildPerson()
+    private static Entity BuildPerson(Entity entity)
     {
-        var entity = new Entity();
         entity.GetOrCreateComponent<MouseInputComponent>();
         entity.GetOrCreateComponent<SelectableComponent>();
-        entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.Person;
+        entity.GetOrCreateComponent<SelectedComponent>().Disable();
         entity.GetOrCreateComponent<PersonComponent>();
         entity.GetOrCreateComponent<PositionComponent>();
         entity.GetOrCreateComponent<MovingComponent>().MoveSpeed = 64;
         entity.GetOrCreateComponent<DrinkThristingComponent>();
+        entity.GetOrCreateComponent<DeadComponent>().Disable();
         entity.GetOrCreateComponent<PrintComponent>();
         entity.GetOrCreateComponent<BuilderComponent>();
         entity.GetOrCreateComponent<PersonDecisionWalkComponent>();
+        entity.GetOrCreateComponent<PersonDecisionDrinkComponent>();
+        entity.GetOrCreateComponent<PersonDecisionSleepComponent>();
+        entity.GetOrCreateComponent<PersonDecisionBuildComponent>();
+        entity.GetOrCreateComponent<FatigueSleepComponent>().Disable();
         entity.GetOrCreateComponent<FatigueComponent>().MaxFatigue = 100;
         entity.GetOrCreateComponent<FatigueComponent>().FatigueThreshold = 80;
         entity.GetOrCreateComponent<FatigueComponent>().FatigueSpeed = 1f;
@@ -44,12 +52,11 @@ public class Entities
         return entity;
     }
 
-    private static Entity BuildHouse()
+    private static Entity BuildHouse(Entity entity)
     {
-        var entity = new Entity();
         entity.GetOrCreateComponent<MouseInputComponent>();
         entity.GetOrCreateComponent<SelectableComponent>();
-        entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.House;
+        entity.GetOrCreateComponent<SelectedComponent>().Disable();
         entity.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[]{
             Vector2Ext.Up,
             Vector2Ext.Down,
@@ -69,12 +76,11 @@ public class Entities
         return entity;
     }
 
-    private static Entity BuildArificialWell()
+    private static Entity BuildArificialWell(Entity entity)
     {
-        var entity = new Entity();
         entity.GetOrCreateComponent<MouseInputComponent>();
         entity.GetOrCreateComponent<SelectableComponent>();
-        entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.ArtificialWell;
+        entity.GetOrCreateComponent<SelectedComponent>().Disable();
         entity.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[]{
             Vector2Ext.Up,
             Vector2Ext.Down,
@@ -96,25 +102,33 @@ public class Entities
         return entity;
     }
 
-    private static Entity BuildTree()
+    private static Entity BuildTree(Entity entity)
     {
-        var entity = new Entity();
-        entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.Tree;
         entity.GetOrCreateComponent<PositionComponent>().BlockingCells = new Vector2[] { Vector2.Zero };
         return entity;
     }
 
-    private static Entity BuildWell()
+    private static Entity BuildWell(Entity entity)
     {
-        var entity = new Entity();
         entity.GetOrCreateComponent<MouseInputComponent>();
         entity.GetOrCreateComponent<SelectableComponent>();
+        entity.GetOrCreateComponent<SelectedComponent>().Disable();
         entity.GetOrCreateComponent<PositionComponent>();
-        entity.GetOrCreateComponent<EntityTypeComponent>().EntityType = EntityTypeComponent.EntityTypes.Well;
         entity.GetOrCreateComponent<AvailabilityComponent>().MaxNumberOfUsers = 1;
         entity.GetOrCreateComponent<DrinkableComponent>().CurrentAmount = 50;
         entity.GetOrCreateComponent<DrinkableRegenerationComponent>().MaxAmount = 100;
         entity.GetOrCreateComponent<DrinkableRegenerationComponent>().Regeneration = 10;
         return entity;
+    }
+
+    public static void Return(Entity entity)
+    {
+        var type = entity.GetOrCreateComponent<EntityTypeComponent>().EntityType;
+        if (!cache.ContainsKey(type))
+        {
+            cache[type] = new Stack<Entity>();
+        }
+
+        cache[type].Push(entity);
     }
 }

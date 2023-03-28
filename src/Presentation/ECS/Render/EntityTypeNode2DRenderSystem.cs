@@ -34,8 +34,8 @@ public class EntityTypeNode2DRenderSystem : MatcherEntitySystem
             var scene = this.sources[entityType];
             var inst = scene.Instance<Node2D>();
             this.parent.AddChild(inst);
-            entity.AddComponent<Node2DComponent>().Node = inst;
-            (inst as IEntityNode2D).e = entity;
+            entity.GetOrCreateComponent<Node2DComponent>().Node = inst;
+            ((IEntityNode2D)inst).e = entity;
         }
     }
 

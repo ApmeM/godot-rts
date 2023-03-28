@@ -71,7 +71,7 @@ public class DrinkProcessUpdateSystem : MatcherEntitySystem
             return;
         }
 
-        closestSource.GetOrCreateComponent<AvailabilityComponent>()?.CurrentUsers.Add(entity);
+        closestSource.GetComponent<AvailabilityComponent>()?.CurrentUsers.Add(entity);
         entity.GetComponent<PersonDecisionDrinkComponent>().SelectedSource = closestSource;
 
         var drinkable = closestSource.GetComponent<DrinkableComponent>();

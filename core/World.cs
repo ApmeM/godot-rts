@@ -9,8 +9,11 @@ public class World
         this.context = new GameContext(worldToMap, mapToWorld);
         this.el = new EntityList();
 
-        var input = this.el.Add(new Entity());
-        input.AddComponent<MouseInputDistributionComponent>();
+        var inputEntity = this.el.Add(new Entity());
+        inputEntity.AddComponent<MouseInputDistributionComponent>();
+
+        var notifyEntity = this.el.Add(new Entity());
+        notifyEntity.AddComponent<NotificationComponent>();
 
         this.el.CommitChanges();
 
@@ -28,21 +31,22 @@ public class World
         );
 
         this.input_esl = new EntitySystemList(el);
-        this.input_esl.Add(new MouseInputDistributeSystem());
+        this.input_esl.Add(new MouseInputDistributeSystem(inputEntity));
 
         this.esl = new EntitySystemList(el);
         this.esl.Add(new BuildMoveUpdateSystem(constructionSource));
         this.esl.Add(new BuildProcessUpdateSystem(constructionSource));
+        this.esl.Add(new CleanupNotificationsUpdateSystem());
         this.esl.Add(new DrinkableRegenerationUpdateSystem());
         this.esl.Add(new DrinkMoveUpdateSystem(waterSources));
         this.esl.Add(new DrinkProcessUpdateSystem(waterSources));
-        this.esl.Add(new DrinkThristingDeathUpdateSystem());
+        this.esl.Add(new DrinkThristingDeathUpdateSystem(notifyEntity));
         this.esl.Add(new DrinkThristingUpdateSystem());
         this.esl.Add(new FatigueProcessUpdateSystem());
         this.esl.Add(new FatigueMoveUpdateSystem(restSources));
         this.esl.Add(new FatigueSleepingUpdateSystem(restSources));
         this.esl.Add(new FatigueSleepThristingSyncUpdateSystem());
-        this.esl.Add(new FatigueToSleepUpdateSystem());
+        this.esl.Add(new FatigueToSleepUpdateSystem(notifyEntity));
         this.esl.Add(new FollowMouseSystem());
         this.esl.Add(new MovingUpdateSystem(this.context));
         this.esl.Add(new PersonDecisionBuildAvailabilitySyncUpdateSystem());
@@ -50,10 +54,16 @@ public class World
         this.esl.Add(new PersonDecisionUpdateSystem(waterSources, constructionSource, restSources));
         this.esl.Add(new PositionBindToMapSystem(this.context));
         this.esl.Add(new PositionUpdateSystem(this.context));
+        this.esl.Add(new RemoveDeadSystem(this));
         this.esl.Add(new ReproductionUpdateSystem(el));
         this.esl.Add(new SelectingEntitySystem());
         this.esl.Add(new SelectPositionMouseSystem(this));
         this.esl.Add(new WalkingUpdateSystem());
+
+        this.esl.AddExecutionOrder<CleanupNotificationsUpdateSystem, DrinkThristingDeathUpdateSystem>();
+        this.esl.AddExecutionOrder<CleanupNotificationsUpdateSystem, FatigueToSleepUpdateSystem>();
+
+        this.esl.AddExecutionOrder<DrinkThristingDeathUpdateSystem, RemoveDeadSystem>();
 
         this.esl.AddExecutionOrder<FollowMouseSystem, PositionBindToMapSystem>();
         this.esl.AddExecutionOrder<PositionBindToMapSystem, PositionUpdateSystem>();
@@ -75,56 +85,36 @@ public class World
         el.CommitChanges();
     }
 
-    public void BuildFence(int size, float stepX, float stepY)
-    {
-        Entity e;
-        e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
-        e.GetComponent<PositionComponent>().Position = new Vector2(0, 0);
-        this.el.Add(e);
-        e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
-        e.GetComponent<PositionComponent>().Position = new Vector2(size * stepX, 0);
-        this.el.Add(e);
-        e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
-        e.GetComponent<PositionComponent>().Position = new Vector2(0, size * stepY);
-        this.el.Add(e);
-        e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
-        e.GetComponent<PositionComponent>().Position = new Vector2(size * stepX, size * stepY);
-        this.el.Add(e);
-
-        for (var i = 1; i < size; i++)
-        {
-            e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
-            e.GetComponent<PositionComponent>().Position = new Vector2(0, i * stepY);
-            this.el.Add(e);
-            e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
-            e.GetComponent<PositionComponent>().Position = new Vector2(i * stepX, 0);
-            this.el.Add(e);
-            e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
-            e.GetComponent<PositionComponent>().Position = new Vector2(size * stepX, i * stepY);
-            this.el.Add(e);
-            e = Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0);
-            e.GetComponent<PositionComponent>().Position = new Vector2(i * stepX, size * stepY);
-            this.el.Add(e);
-        }
-    }
-
     public void BuildForTest(float stepX, float stepY)
     {
         const int myPlayerId = 1;
+        const int fenceSize = 60;
+
         el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Well, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(2 * stepX, 2 * stepY);
 
-        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.House, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(5 * stepX, 2 * stepY);
-        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.House, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(5 * stepX, 7 * stepY);
-        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.House, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(5 * stepX, 12 * stepY);
-
-        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.ArtificialWell, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(10 * stepX, 2 * stepY);
-        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.ArtificialWell, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(10 * stepX, 7 * stepY);
-        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.ArtificialWell, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(10 * stepX, 12 * stepY);
-
         for (var i = 0; i < 10; i++)
-            for (var j = 0; j < 10; j++)
+        {
+            el.Add(Entities.Build(EntityTypeComponent.EntityTypes.House, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(5 * stepX, (2 + 5 * i) * stepY);
+            el.Add(Entities.Build(EntityTypeComponent.EntityTypes.ArtificialWell, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(10 * stepX, (2 + 5 * i) * stepY);
+        }
+
+        for (var i = 0; i < 6; i++)
+            for (var j = 0; j < 6; j++)
             {
                 el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Person, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2((15 + i) * stepX, (15 + j) * stepY);
             }
+
+        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0)).GetComponent<PositionComponent>().Position = new Vector2(0, 0);
+        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0)).GetComponent<PositionComponent>().Position = new Vector2(fenceSize * stepX, 0);
+        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0)).GetComponent<PositionComponent>().Position = new Vector2(0, fenceSize * stepY);
+        el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0)).GetComponent<PositionComponent>().Position = new Vector2(fenceSize * stepX, fenceSize * stepY);
+
+        for (var i = 1; i < fenceSize; i++)
+        {
+            el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0)).GetComponent<PositionComponent>().Position = new Vector2(0, i * stepY);
+            el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0)).GetComponent<PositionComponent>().Position = new Vector2(i * stepX, 0);
+            el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0)).GetComponent<PositionComponent>().Position = new Vector2(fenceSize * stepX, i * stepY);
+            el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Tree, 0)).GetComponent<PositionComponent>().Position = new Vector2(i * stepX, fenceSize * stepY);
+        }
     }
 }

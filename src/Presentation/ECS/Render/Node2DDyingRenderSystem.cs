@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using LocomotorECS;
 
 public class Node2DDyingRenderSystem : MatcherEntitySystem
@@ -6,13 +7,18 @@ public class Node2DDyingRenderSystem : MatcherEntitySystem
     {
     }
 
-    protected override void DoAction(Entity entity, float delta)
+    protected override void OnEntityListChanged(HashSet<Entity> added, HashSet<Entity> changed, HashSet<Entity> removed)
     {
-        base.DoAction(entity, delta);
+        base.OnEntityListChanged(added, changed, removed);
 
-        var node = entity.GetComponent<Node2DComponent>();
-        node.Node.QueueFree();
-        node.Node.GetParent().RemoveChild(node.Node);
-        entity.Disable();
+        foreach (var entity in removed)
+        {
+            var node = entity.GetComponent<Node2DComponent>();
+            node.Node.QueueFree();
+            node.Node.GetParent().
+            RemoveChild(node.Node);
+            node.Node = null;
+            node.Disable();
+        }
     }
 }

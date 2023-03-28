@@ -35,7 +35,12 @@ public class MovingUpdateSystem : MatcherEntitySystem
                 return;
             }
 
-            moving.Path.AddRange(newPath);
+            foreach (var point in newPath)
+            {
+                moving.Path.Add(point);
+            }
+            
+            moving.Path.Add(moving.PathTarget);
             moving.PathTarget = moving.Path[moving.Path.Count - 1];
         }
 

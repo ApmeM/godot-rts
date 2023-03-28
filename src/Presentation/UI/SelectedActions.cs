@@ -65,7 +65,7 @@ public partial class SelectedActions
     private void StartDrag(EntityTypeComponent.EntityTypes type)
     {
         var e = new Entity();
-        e.GetOrCreateComponent<EntityTypeComponent>().EntityType = type;
+        e.AddComponent<EntityTypeComponent>().EntityType = type;
         e.AddComponent<PositionComponent>();
         e.AddComponent<MouseInputComponent>();
         e.AddComponent<FollowMouseComponent>();

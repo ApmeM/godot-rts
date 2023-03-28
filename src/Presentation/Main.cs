@@ -21,7 +21,6 @@ public partial class Main
         // this.world.BuildFromDesignTime(this.map);
         this.world.BuildForTest(this.map.CellSize.x, this.map.CellSize.y);
         this.map.ClearChildren();
-        this.world.BuildFence(60, this.map.CellSize.x, this.map.CellSize.y);
         this.selectedDetails.World = this.world;
         this.selectedActions.World = this.world;
     }

@@ -2,10 +2,13 @@ using LocomotorECS;
 
 public class DrinkThristingDeathUpdateSystem : MatcherEntitySystem
 {
-    public DrinkThristingDeathUpdateSystem() : base(new Matcher()
+    private readonly Entity notification;
+
+    public DrinkThristingDeathUpdateSystem(Entity notification) : base(new Matcher()
         .All<DrinkThristingComponent>()
         .Exclude<DeadComponent>())
     {
+        this.notification = notification;
     }
 
     protected override void DoAction(Entity entity, float delta)
@@ -14,7 +17,8 @@ public class DrinkThristingDeathUpdateSystem : MatcherEntitySystem
 
         if (entity.GetComponent<DrinkThristingComponent>().CurrentThristing < 0)
         {
-            entity.AddComponent<DeadComponent>();
+            entity.GetComponent<DeadComponent>().Enable();
+            notification.GetComponent<NotificationComponent>().ThristingDead = true;
         }
     }
 }

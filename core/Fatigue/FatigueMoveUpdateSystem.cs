@@ -53,7 +53,7 @@ public class FatigueMoveUpdateSystem : MatcherEntitySystem
 
         if (position.Position == closestRest)
         {
-            entity.GetOrCreateComponent<FatigueSleepComponent>().Enable();
+            entity.GetComponent<FatigueSleepComponent>().Enable();
             return;
         }
 

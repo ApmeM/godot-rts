@@ -3,16 +3,15 @@ using LocomotorECS;
 
 public class MouseInputDistributeSystem : MatcherEntitySystem
 {
-    private MatcherEntityList inputEntityList;
+    private readonly Entity inputEntity;
 
-    public MouseInputDistributeSystem() : base(new Matcher().All<MouseInputComponent>())
+    public MouseInputDistributeSystem(Entity inputEntity) : base(new Matcher().All<MouseInputComponent>())
     {
+        this.inputEntity = inputEntity;
     }
 
     protected override void DoAction(Entity entity, float delta)
     {
-        var inputEntity = this.inputEntityList.Entities.ToRefLinq().First();
-
         var currentMouse = inputEntity.GetComponent<MouseInputDistributionComponent>();
         var newMouse = entity.GetComponent<MouseInputComponent>();
 
@@ -20,11 +19,5 @@ public class MouseInputDistributeSystem : MatcherEntitySystem
         newMouse.MouseButtons = currentMouse.MouseButtons;
         newMouse.JustPressedButtins = currentMouse.JustPressedButtins;
         newMouse.JustReleasedButtins = currentMouse.JustReleasedButtins;
-    }
-
-    protected override EntityListChangeNotificator FilterEntityList(EntityListChangeNotificator entityList)
-    {
-        this.inputEntityList = new MatcherEntityList(entityList, new Matcher().All<MouseInputDistributionComponent>());
-        return base.FilterEntityList(entityList);
     }
 }
