@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Struct;
 using System.Numerics;
-using HonkPerf.NET.RefLinq;
 
 public class Program
 {
@@ -11,7 +11,7 @@ public class Program
         var w = new World(a => a, a => a);
         w.BuildForTest(1, 1);
 
-        var notification = w.el.Entities.ToRefLinq().Select(a => a.GetComponent<NotificationComponent>()).Where(a => a != null).First();
+        var notification = w.el.Entities.Select(a => a.GetComponent<NotificationComponent>()).Where(a => a != null).First();
         var persons = w.el.FindEntitiesByTag((int)EntityTypeComponent.EntityTypes.Person);
         for (var i = 0; i < 20000; i++)
         {

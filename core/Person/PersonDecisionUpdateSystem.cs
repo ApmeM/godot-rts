@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using HonkPerf.NET.RefLinq;
-using HonkPerf.NET.RefLinq.Enumerators;
+using System.Linq.Struct;
 using LocomotorECS;
 
 public class PersonDecisionUpdateSystem : MatcherEntitySystem
@@ -28,7 +27,7 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
 
         this.entityData = new CommonLambdas.EntityData();
         this.wrapper = new MultiHashSetWrapper<Entity>();
-        this.query = this.wrapper.ToRefLinq().Where(CommonLambdas.GetAvailabilityLambda(this.entityData));
+        this.query = this.wrapper.Where(CommonLambdas.GetAvailabilityLambda(this.entityData));
     }
 
     protected override void DoAction(Entity entity, float delta)
@@ -44,9 +43,9 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
                 thristing.CurrentThristing < thristing.ThristThreshold ||
                 thristing.CurrentThristing < thristing.MaxThristLevel && entity.GetComponent<PersonDecisionDrinkComponent>().Enabled))
         {
-            wrapper.Set = waterSources[0].Entities;
+            wrapper.Data = waterSources[0].Entities;
             var result = query.Any();
-            wrapper.Set = waterSources[player.PlayerId].Entities;
+            wrapper.Data = waterSources[player.PlayerId].Entities;
             result = result || query.Any();
             if (result)
             {
@@ -56,7 +55,7 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
             }
         }
 
-        wrapper.Set = restSources[player.PlayerId].Entities;
+        wrapper.Data = restSources[player.PlayerId].Entities;
         var fatigue = entity.GetComponent<FatigueComponent>();
         if (fatigue != null && fatigue.CurrentFatigue > fatigue.FatigueThreshold && query.Any())
         {
@@ -65,7 +64,7 @@ public class PersonDecisionUpdateSystem : MatcherEntitySystem
             return;
         }
 
-        wrapper.Set = constructionSource[player.PlayerId].Entities;
+        wrapper.Data = constructionSource[player.PlayerId].Entities;
         var builder = entity.GetComponent<BuilderComponent>();
         if (builder != null && query.Any())
         {

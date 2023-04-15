@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Struct;
 using System.Numerics;
-using HonkPerf.NET.RefLinq;
-using HonkPerf.NET.RefLinq.Enumerators;
 using LocomotorECS;
 
 public class DrinkProcessUpdateSystem : MatcherEntitySystem
@@ -22,14 +21,14 @@ public class DrinkProcessUpdateSystem : MatcherEntitySystem
         this.waterSources = drinkSource;
         this.entityData = new CommonLambdas.EntityData();
         this.wrapper = new MultiHashSetWrapper<Entity>();
-        this.query = this.wrapper.ToRefLinq()
+        this.query = this.wrapper
             .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
             .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
     }
 
     protected override void DoAction(float delta)
     {
-        if (!waterSources.ToRefLinq().Where(a => a.Value.Entities.Count > 0).Any())
+        if (!waterSources.Where(a => a.Value.Entities.Count > 0).Any())
         {
             return;
         }
@@ -47,9 +46,9 @@ public class DrinkProcessUpdateSystem : MatcherEntitySystem
 
         this.entityData.Entity = entity;
         
-        wrapper.Set = waterSources[0].Entities;
+        wrapper.Data = waterSources[0].Entities;
         var closestNeutralSource = query.FirstOrDefault();
-        wrapper.Set = waterSources[player.PlayerId].Entities;
+        wrapper.Data = waterSources[player.PlayerId].Entities;
         var closestSelfSource = query.FirstOrDefault();
 
         var closestSource = closestNeutralSource == null

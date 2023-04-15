@@ -1,7 +1,6 @@
 using System;
+using System.Linq.Struct;
 using System.Numerics;
-using HonkPerf.NET.RefLinq;
-using HonkPerf.NET.RefLinq.Enumerators;
 using LocomotorECS;
 
 public class FatigueSleepingUpdateSystem : MatcherEntitySystem
@@ -21,7 +20,7 @@ public class FatigueSleepingUpdateSystem : MatcherEntitySystem
         this.restSources = restSources;
         this.entityData = new CommonLambdas.EntityData();
         this.wrapper = new MultiHashSetWrapper<Entity>();
-        this.query = this.wrapper.ToRefLinq()
+        this.query = this.wrapper
             .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
             .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
     }
@@ -36,7 +35,7 @@ public class FatigueSleepingUpdateSystem : MatcherEntitySystem
 
         this.entityData.Entity = entity;
 
-        wrapper.Set = restSources[player.PlayerId].Entities;
+        wrapper.Data = restSources[player.PlayerId].Entities;
         var closestSource = query.FirstOrDefault();
         var closestRest = closestSource?.GetComponent<PositionComponent>()?.Position ?? Vector2Ext.Inf;
 

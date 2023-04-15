@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Struct;
 using System.Numerics;
-using HonkPerf.NET.RefLinq;
-using HonkPerf.NET.RefLinq.Enumerators;
 using LocomotorECS;
 
 public class BuildMoveUpdateSystem : MatcherEntitySystem
@@ -23,14 +22,14 @@ public class BuildMoveUpdateSystem : MatcherEntitySystem
         this.constructionSource = constructionSource;
         this.entityData = new CommonLambdas.EntityData();
         this.wrapper = new MultiHashSetWrapper<Entity>();
-        this.query = this.wrapper.ToRefLinq()
+        this.query = this.wrapper
             .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
             .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
     }
 
     protected override void DoAction(float delta)
     {
-        if (!constructionSource.ToRefLinq().Where(a => a.Value.Entities.Count > 0).Any())
+        if (!constructionSource.Where(a => a.Value.Entities.Count > 0).Any())
         {
             return;
         }
@@ -47,7 +46,7 @@ public class BuildMoveUpdateSystem : MatcherEntitySystem
 
         this.entityData.Entity = entity;
 
-        wrapper.Set = constructionSource[player.PlayerId].Entities;
+        wrapper.Data = constructionSource[player.PlayerId].Entities;
         var closestSource = query.FirstOrDefault();
 
         var closestConstruction = closestSource?.GetComponent<PositionComponent>()?.Position ?? Vector2Ext.Inf;
