@@ -36,7 +36,12 @@ public class Entities
         entity.GetOrCreateComponent<PersonComponent>();
         entity.GetOrCreateComponent<PositionComponent>();
         entity.GetOrCreateComponent<MovingComponent>().MoveSpeed = 64;
-        entity.GetOrCreateComponent<DrinkThristingComponent>();
+        entity.GetOrCreateComponent<MovingComponent>().PathTarget = Vector2Ext.Inf;
+        entity.GetOrCreateComponent<DrinkThristingComponent>().CurrentThristing = 100;
+        entity.GetOrCreateComponent<DrinkThristingComponent>().ThristThreshold = 50;
+        entity.GetOrCreateComponent<DrinkThristingComponent>().MaxThristLevel = 100;
+        entity.GetOrCreateComponent<DrinkThristingComponent>().ThristSpeed = 3;
+        entity.GetOrCreateComponent<DrinkThristingComponent>().DrinkSpeed = 50;
         entity.GetOrCreateComponent<DeadComponent>().Disable();
         entity.GetOrCreateComponent<PrintComponent>();
         entity.GetOrCreateComponent<BuilderComponent>();

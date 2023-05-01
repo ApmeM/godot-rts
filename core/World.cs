@@ -92,7 +92,7 @@ public class World
 
         el.Add(Entities.Build(EntityTypeComponent.EntityTypes.Well, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(2 * stepX, 2 * stepY);
 
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < 4; i++)
         {
             el.Add(Entities.Build(EntityTypeComponent.EntityTypes.House, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(5 * stepX, (2 + 5 * i) * stepY);
             el.Add(Entities.Build(EntityTypeComponent.EntityTypes.ArtificialWell, myPlayerId)).GetComponent<PositionComponent>().Position = new Vector2(10 * stepX, (2 + 5 * i) * stepY);

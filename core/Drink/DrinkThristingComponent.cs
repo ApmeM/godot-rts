@@ -2,13 +2,13 @@ using LocomotorECS;
 
 public class DrinkThristingComponent : Component
 {
-    public float ThristThreshold = 50;
+    public float ThristThreshold;
 
-    public float CurrentThristing = 100;
+    public float CurrentThristing;
 
-    public float MaxThristLevel = 100;
+    public float MaxThristLevel;
 
-    public float ThristSpeed = 3f;
+    public float ThristSpeed;
 
-    public float DrinkSpeed = 50f;
+    public float DrinkSpeed;
 }
