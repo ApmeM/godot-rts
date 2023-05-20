@@ -1,62 +1,73 @@
 using System.Numerics;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class MovingUpdateSystem : MatcherEntitySystem
+public class MovingUpdateSystem : IEcsRunSystem
 {
-    private readonly GameContext gameContext;
+    private readonly IPathFinder pathFinder;
 
-    public MovingUpdateSystem(GameContext gameContext) : base(new Matcher()
-        .All<PositionComponent>()
-        .All<MovingComponent>()
-        .Exclude<FatigueSleepComponent>())
+    public MovingUpdateSystem(IPathFinder pathFinder)
     {
-        this.gameContext = gameContext;
+        this.pathFinder = pathFinder;
     }
 
-    protected override void DoAction(Entity entity, float delta)
+    public void Run(IEcsSystems systems)
     {
-        base.DoAction(entity, delta);
-        var position = entity.GetComponent<PositionComponent>();
-        var moving = entity.GetComponent<MovingComponent>();
+        var delta = systems.GetShared<World.SharedData>().delta;
+        var world = systems.GetWorld();
 
-        if (moving.PathTarget == Vector2Ext.Inf)
+        var filter = world.Filter()
+            .Inc<PositionComponent>()
+            .Inc<MovingComponent>()
+            .Exc<FatigueSleepComponent>()
+            .Exc<DeadComponent>()
+            .End();
+
+        var positions = world.GetPool<PositionComponent>();
+        var movings = world.GetPool<MovingComponent>();
+
+        foreach (var entity in filter)
         {
-            return;
-        }
+            ref var position = ref positions.GetAdd(entity);
+            ref var moving = ref movings.GetAdd(entity);
 
-        if (moving.Path.Count == 0 || moving.PathTarget != moving.Path[moving.Path.Count - 1])
-        {
-            moving.Path.Clear();
-
-            var newPath = this.gameContext.FindPath(position.Position, moving.PathTarget);
-            if (newPath == null)
+            if (moving.PathTarget == Vector2Ext.Inf)
             {
-                moving.PathTarget = Vector2Ext.Inf;
-                return;
+                continue;
             }
 
-            foreach (var point in newPath)
+            if (moving.Path.Count == 0 || moving.PathTarget != moving.Path[moving.Path.Count - 1])
             {
-                moving.Path.Add(point);
-            }
-            
-            moving.Path.Add(moving.PathTarget);
-            moving.PathTarget = moving.Path[moving.Path.Count - 1];
-        }
+                moving.Path.Clear();
 
-        var path = moving.Path[0] - position.Position;
-        var motion = path.Normalized() * moving.MoveSpeed * delta;
-        if (path.LengthSquared() > motion.LengthSquared())
-        {
-            position.Position += motion;
-        }
-        else
-        {
-            position.Position = moving.Path[0];
-            moving.Path.RemoveAt(0);
-            if (moving.Path.Count == 0)
+                var newPath = this.pathFinder.FindPath(position.Position, moving.PathTarget);
+                if (newPath == null)
+                {
+                    moving.PathTarget = Vector2Ext.Inf;
+                    continue;
+                }
+
+                foreach (var point in newPath)
+                {
+                    moving.Path.Add(point);
+                }
+
+                moving.PathTarget = moving.Path[moving.Path.Count - 1];
+            }
+
+            var path = moving.Path[0] - position.Position;
+            var motion = path.Normalized() * moving.MoveSpeed * delta;
+            if (path.LengthSquared() > motion.LengthSquared())
             {
-                moving.PathTarget = Vector2Ext.Inf;
+                position.Position += motion;
+            }
+            else
+            {
+                position.Position = moving.Path[0];
+                moving.Path.RemoveAt(0);
+                if (moving.Path.Count == 0)
+                {
+                    moving.PathTarget = Vector2Ext.Inf;
+                }
             }
         }
     }

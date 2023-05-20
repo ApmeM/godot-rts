@@ -1,28 +1,44 @@
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class SelectingEntitySystem : MatcherEntitySystem
+public class SelectingEntitySystem : IEcsRunSystem
 {
-    public SelectingEntitySystem() : base(new Matcher()
-            .All<SelectableComponent>()
-            .All<MouseInputComponent>()
-            .All<PositionComponent>())
+    private readonly float distance;
+
+    public SelectingEntitySystem(float distance)
     {
+        this.distance = distance;
     }
 
-    protected override void DoAction(Entity entity, float delta)
+    public void Run(IEcsSystems systems)
     {
-        var mouse = entity.GetComponent<MouseInputComponent>();
-        var position = entity.GetComponent<PositionComponent>();
+        var world = systems.GetWorld();
 
-        if ((mouse.JustPressedButtins & (int)MouseInputComponent.ButtonList.MaskLeft) == (int)MouseInputComponent.ButtonList.Left)
+        var filter = world.Filter()
+            .Inc<SelectableComponent>()
+            .Inc<MouseInputComponent>()
+            .Inc<PositionComponent>()
+            .End();
+
+        var selectables = world.GetPool<SelectableComponent>();
+        var mouseInputs = world.GetPool<MouseInputComponent>();
+        var positions = world.GetPool<PositionComponent>();
+        var selecteds = world.GetPool<SelectedComponent>();
+
+        foreach (var entity in filter)
         {
-            if ((mouse.MousePosition - position.Position).LengthSquared() < 256)
+            var mouse = mouseInputs.Get(entity);
+            var position = positions.Get(entity);
+
+            if ((mouse.JustPressedButtins & (int)MouseInputComponent.ButtonList.MaskLeft) == (int)MouseInputComponent.ButtonList.Left)
             {
-                entity.GetComponent<SelectedComponent>().Enable();
-            }
-            else
-            {
-                entity.GetComponent<SelectedComponent>().Disable();
+                if ((mouse.MousePosition - position.Position).LengthSquared() < this.distance * this.distance / 2)
+                {
+                    selecteds.GetAdd(entity);
+                }
+                else
+                {
+                    selecteds.Del(entity);
+                }
             }
         }
     }

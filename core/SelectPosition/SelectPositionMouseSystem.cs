@@ -1,33 +1,34 @@
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class SelectPositionMouseSystem : MatcherEntitySystem
+public class SelectPositionMouseSystem : IEcsRunSystem
 {
-    private readonly World world;
-
-    public SelectPositionMouseSystem(World parent) : base(new Matcher()
-            .All<SelectPositionMouseComponent>()
-            .All<MouseInputComponent>()
-            .All<EntityTypeComponent>()
-            .All<PositionComponent>()
-            .All<PlayerComponent>())
+    public void Run(IEcsSystems systems)
     {
-        this.world = parent;
-    }
+        var world = systems.GetWorld();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        var mouse = entity.GetComponent<MouseInputComponent>();
-        if ((mouse.MouseButtons & (int)MouseInputComponent.ButtonList.MaskLeft) != (int)MouseInputComponent.ButtonList.Left)
+        var filter = world.Filter()
+            .Inc<SelectPositionMouseComponent>()
+            .Inc<MouseInputComponent>()
+            .Inc<EntityTypeComponent>()
+            .Inc<PositionComponent>()
+            .Inc<PlayerComponent>()
+            .End();
+
+        var mouseInputs = world.GetPool<MouseInputComponent>();
+        var positions = world.GetPool<PositionComponent>();
+        var entityTypes = world.GetPool<EntityTypeComponent>();
+        var players = world.GetPool<PlayerComponent>();
+
+        foreach (var entity in filter)
         {
-            return;
-        }
+            if ((mouseInputs.Get(entity).MouseButtons & (int)MouseInputComponent.ButtonList.MaskLeft) != (int)MouseInputComponent.ButtonList.Left)
+            {
+                continue;
+            }
 
-        var position = entity.GetComponent<PositionComponent>();
-        var type = entity.GetComponent<EntityTypeComponent>();
-        var player = entity.GetComponent<PlayerComponent>();
-        var newEntity = Entities.Build(type.EntityType, player.PlayerId);
-        newEntity.GetComponent<PositionComponent>().Position = position.Position;
-        this.world.el.Add(newEntity);
-        this.world.el.Remove(entity);
+            var newEntity = Entities.Build(world, entityTypes.GetAdd(entity).EntityType, players.GetAdd(entity).PlayerId);
+            positions.GetAdd(newEntity).Position = positions.GetAdd(entity).Position;
+            world.DelEntity(entity);
+        }
     }
 }

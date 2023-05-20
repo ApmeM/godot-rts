@@ -1,6 +1,4 @@
-using LocomotorECS;
-
-public class PrintComponent : Component
+public struct PrintComponent
 {
     public string Text;
 }

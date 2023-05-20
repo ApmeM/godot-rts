@@ -1,5 +1,3 @@
-using LocomotorECS;
-
-public class PersonDecisionWalkComponent : Component
+public struct PersonDecisionWalkComponent
 {
 }

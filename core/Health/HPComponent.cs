@@ -1,5 +1,4 @@
-using LocomotorECS;
-public class HPComponent : Component
+public struct HPComponent
 {
     public float MaxHP;
     public float HP;

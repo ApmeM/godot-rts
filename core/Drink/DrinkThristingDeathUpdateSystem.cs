@@ -1,24 +1,45 @@
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class DrinkThristingDeathUpdateSystem : MatcherEntitySystem
+public class DrinkThristingDeathUpdateSystem : IEcsRunSystem
 {
-    private readonly Entity notification;
-
-    public DrinkThristingDeathUpdateSystem(Entity notification) : base(new Matcher()
-        .All<DrinkThristingComponent>()
-        .Exclude<DeadComponent>())
+    public void Run(IEcsSystems systems)
     {
-        this.notification = notification;
-    }
+        var world = systems.GetWorld();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
+        var thristingEntities = world.Filter()
+            .Inc<DrinkThristingComponent>()
+            .Exc<DeadComponent>()
+            .End();
 
-        if (entity.GetComponent<DrinkThristingComponent>().CurrentThristing < 0)
+        var notificationEntities = world.Filter()
+            .Inc<NotificationComponent>()
+            .End();
+
+        var thristings = world.GetPool<DrinkThristingComponent>();
+        var notifications = world.GetPool<NotificationComponent>();
+        var deads = world.GetPool<DeadComponent>();
+
+        var notified = false;
+
+        foreach (var thristingEntity in thristingEntities)
         {
-            entity.GetComponent<DeadComponent>().Enable();
-            notification.GetComponent<NotificationComponent>().ThristingDead = true;
+            var thristing = thristings.GetAdd(thristingEntity);
+
+            if (thristing.CurrentThristing >= 0)
+            {
+                continue;
+            }
+            
+            deads.Add(thristingEntity);
+
+            if (!notified)
+            {
+                notified = true;
+                foreach (var notificationEntity in notificationEntities)
+                {
+                    notifications.GetAdd(notificationEntity).ThristingDead = true;
+                }
+            }
         }
     }
 }

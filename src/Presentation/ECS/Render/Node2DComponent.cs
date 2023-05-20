@@ -1,7 +1,6 @@
 using Godot;
-using LocomotorECS;
 
-public class Node2DComponent : Component
+public struct Node2DComponent
 {
     public Node2D Node;
 }

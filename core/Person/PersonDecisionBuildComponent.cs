@@ -1,6 +1,3 @@
-using LocomotorECS;
-
-public class PersonDecisionBuildComponent : Component
+public struct PersonDecisionBuildComponent
 {
-    public Entity SelectedConstruction;
 }

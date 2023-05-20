@@ -1,35 +1,45 @@
 using System;
-using LocomotorECS;
+using System.Collections.Generic;
+using Leopotam.EcsLite;
 
-public class ReproductionUpdateSystem : MatcherEntitySystem
+public class ReproductionUpdateSystem : IEcsRunSystem
 {
-    private readonly EntityList el;
     private readonly Random r = new Random();
 
-    public ReproductionUpdateSystem(EntityList el) : base(new Matcher()
-        .All<RestComponent>()
-        .All<PlayerComponent>()
-        .All<AvailabilityComponent>())
+    private readonly Dictionary<int, int> data = new Dictionary<int, int>();
+
+    public void Run(IEcsSystems systems)
     {
-        this.el = el;
-    }
+        var world = systems.GetWorld();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
+        var filter = world.Filter()
+            .Inc<FatigueSleepComponent>()
+            .Inc<FatigueComponent>()
+            .Inc<AvailabilityHolderComponent>()
+            .Inc<PlayerComponent>()
+            .End();
 
-        var avaiability = entity.GetComponent<AvailabilityComponent>();
-        if (avaiability.CurrentUsers.Count <= 1)
+        var holders = world.GetPool<AvailabilityHolderComponent>();
+        var players = world.GetPool<PlayerComponent>();
+        var positions = world.GetPool<PositionComponent>();
+
+        data.Clear();
+        foreach (var entity in filter)
         {
-            return;
-        }
+            var holder = holders.GetAdd(entity);
+            if (!data.ContainsKey(holder.OccupiedEntity))
+            {
+                data[holder.OccupiedEntity] = 0;
+            }
 
-        if (r.NextDouble() < 0.025)
-        {
-            var player = entity.GetComponent<PlayerComponent>();
-            var person = Entities.Build(EntityTypeComponent.EntityTypes.Person, player.PlayerId);
-            person.GetComponent<PositionComponent>().Position = entity.GetComponent<PositionComponent>().Position;
-            el.Add(person);
+            data[holder.OccupiedEntity]++;
+
+            if (data[holder.OccupiedEntity] > 1 && r.NextDouble() < 0.025)
+            {
+                var player = players.GetAdd(entity);
+                var person = Entities.Build(world, EntityTypeComponent.EntityTypes.Person, player.PlayerId);
+                positions.GetAdd(person).Position = positions.GetAdd(entity).Position;
+            }
         }
     }
 }

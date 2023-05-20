@@ -3,25 +3,12 @@ using System.Linq;
 using Godot;
 using GodotAnalysers;
 using GodotRts.Presentation.Utils;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
 [SceneReference("SelectedDetails.tscn")]
 public partial class SelectedDetails
 {
-    private World world;
-    private MatcherEntityList selectedList;
-    private bool enititiesCountChanged;
-
-    public World World
-    {
-        get => world;
-        set
-        {
-            world = value;
-            selectedList = new MatcherEntityList(world.el, new Matcher().All<SelectedComponent>());
-            selectedList.EntityListChanged += (a, b, c) => this.enititiesCountChanged = this.enititiesCountChanged || a.Any() || c.Any();
-        }
-    }
+    public World World;
 
     public override void _Ready()
     {
@@ -32,6 +19,8 @@ public partial class SelectedDetails
     public override void _Process(float delta)
     {
         base._Process(delta);
+
+/*
 
         if (enititiesCountChanged)
         {
@@ -98,16 +87,17 @@ public partial class SelectedDetails
                 default:
                     break;
             }
-        }
+        }*/
     }
 
     private void ButtonClicked(int selectedId)
     {
         var id = 0;
+        /* 
         foreach (var e in this.selectedList.Entities)
         {
             e.GetComponent<SelectedComponent>().Enabled = selectedId == id;
             id++;
-        }
+        } */
     }
 }

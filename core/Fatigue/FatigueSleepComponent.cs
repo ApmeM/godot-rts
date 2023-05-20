@@ -1,5 +1,5 @@
-using LocomotorECS;
-
-public class FatigueSleepComponent : Component
+public struct FatigueSleepComponent
 {
+    public float RestSpeed;
+    public bool InHouse;
 }

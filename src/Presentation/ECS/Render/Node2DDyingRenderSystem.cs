@@ -1,24 +1,29 @@
 using System.Collections.Generic;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class Node2DDyingRenderSystem : MatcherEntitySystem
+public class Node2DDyingRenderSystem : IEcsRunSystem
 {
-    public Node2DDyingRenderSystem() : base(new Matcher().All<Node2DComponent>().All<DeadComponent>())
+    public void Run(IEcsSystems systems)
     {
-    }
+        var world = systems.GetWorld();
 
-    protected override void OnEntityListChanged(HashSet<Entity> added, HashSet<Entity> changed, HashSet<Entity> removed)
-    {
-        base.OnEntityListChanged(added, changed, removed);
+        var filter = world.Filter()
+            .Inc<Node2DComponent>()
+            .Inc<DeadComponent>()
+            .End();
 
-        foreach (var entity in removed)
+        var nodes = world.GetPool<Node2DComponent>();
+
+        foreach (var entity in filter)
         {
-            var node = entity.GetComponent<Node2DComponent>();
+            ref var node = ref nodes.GetAdd(entity);
+
             node.Node.QueueFree();
             node.Node.GetParent().
             RemoveChild(node.Node);
             node.Node = null;
-            node.Disable();
+
+            nodes.Del(entity);
         }
     }
 }

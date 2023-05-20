@@ -1,60 +1,56 @@
 using System;
 using System.Collections.Generic;
-using System.Linq.Struct;
 using System.Numerics;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class BuildMoveUpdateSystem : MatcherEntitySystem
+public class BuildMoveUpdateSystem : IEcsRunSystem
 {
-    private EntityLookup<int> constructionSource;
-
-    private readonly CommonLambdas.EntityData entityData;
-    private MultiHashSetWrapper<Entity> wrapper;
-    private RefLinqEnumerable<Entity, OrderBy<Entity, Where<Entity, MultiHashSetWrapperEnumerator<Entity>>, float>> query;
-
-    public BuildMoveUpdateSystem(EntityLookup<int> constructionSource) : base(new Matcher()
-        .All<PersonDecisionBuildComponent>()
-        .All<MovingComponent>()
-        .All<PositionComponent>()
-        .All<PlayerComponent>()
-        .Exclude<FatigueSleepComponent>())
+    public void Run(IEcsSystems systems)
     {
-        this.constructionSource = constructionSource;
-        this.entityData = new CommonLambdas.EntityData();
-        this.wrapper = new MultiHashSetWrapper<Entity>();
-        this.query = this.wrapper
-            .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
-            .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
-    }
+        var world = systems.GetWorld();
 
-    protected override void DoAction(float delta)
-    {
-        if (!constructionSource.Where(a => a.Value.Entities.Count > 0).Any())
+        var constructionEntities = world.Filter()
+            .Inc<ConstructionComponent>()
+            .Inc<PositionComponent>()
+            .Inc<PlayerComponent>()
+            // Might have Availability
+            .End();
+
+        using (var e = constructionEntities.GetEnumerator())
         {
-            return;
+            if (!e.MoveNext())
+            {
+                return;
+            }
         }
 
-        base.DoAction(delta);
-    }
+        var builderEntities = world.Filter()
+            .Inc<PersonDecisionBuildComponent>()
+            .Inc<BuilderComponent>()
+            .Inc<MovingComponent>()
+            .Inc<PositionComponent>()
+            .Inc<PlayerComponent>()
+            .End();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
+        var availabilityHolders = world.Filter()
+            .Inc<PersonDecisionBuildComponent>()
+            .Inc<BuilderComponent>()
+            .Inc<AvailabilityHolderComponent>()
+            .End();
 
-        var position = entity.GetComponent<PositionComponent>();
-        var player = entity.GetComponent<PlayerComponent>();
+        var movings = world.GetPool<MovingComponent>();
+        var positions = world.GetPool<PositionComponent>();
 
-        this.entityData.Entity = entity;
-
-        wrapper.Data = constructionSource[player.PlayerId].Entities;
-        var closestSource = query.FirstOrDefault();
-
-        var closestConstruction = closestSource?.GetComponent<PositionComponent>()?.Position ?? Vector2Ext.Inf;
-        if (position.Position == closestConstruction)
+        foreach (var builderEntity in builderEntities)
         {
-            return;
-        }
+            var constructionEntity = CommonLambdas.FindClosestAvailableSource(world, constructionEntities, builderEntity, availabilityHolders, false);
+            if (constructionEntity == -1 ||
+                positions.GetAdd(builderEntity).Position == positions.GetAdd(constructionEntity).Position)
+            {
+                continue;
+            }
 
-        entity.GetComponent<MovingComponent>().PathTarget = closestConstruction;
+            movings.Get(builderEntity).PathTarget = positions.Get(constructionEntity).Position;
+        }
     }
 }

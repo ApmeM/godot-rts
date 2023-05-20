@@ -1,6 +1,4 @@
-using LocomotorECS;
-
-public class DrinkableComponent : Component
+public struct DrinkableComponent
 {
     public float CurrentAmount;
 }

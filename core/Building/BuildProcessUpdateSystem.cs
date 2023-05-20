@@ -1,90 +1,89 @@
 using System;
-using System.Collections.Generic;
-using System.Linq.Struct;
-using System.Numerics;
-using LocomotorECS;
+using System.Linq;
+using Leopotam.EcsLite;
 
-public class BuildProcessUpdateSystem : MatcherEntitySystem
+public class BuildProcessUpdateSystem : IEcsRunSystem
 {
-    private EntityLookup<int> constructionSource;
-    private readonly CommonLambdas.EntityData entityData;
-    private MultiHashSetWrapper<Entity> wrapper;
-    private RefLinqEnumerable<Entity, OrderBy<Entity, Where<Entity, MultiHashSetWrapperEnumerator<Entity>>, float>> query;
-    
-    public BuildProcessUpdateSystem(EntityLookup<int> constructionSource) : base(new Matcher()
-        .All<PersonDecisionBuildComponent>()
-        .All<BuilderComponent>()
-        .All<PositionComponent>()
-        .All<PlayerComponent>()
-        .Exclude<FatigueSleepComponent>())
+    public void Run(IEcsSystems systems)
     {
-        this.constructionSource = constructionSource;
-        this.entityData = new CommonLambdas.EntityData();
-        this.wrapper = new MultiHashSetWrapper<Entity>();
-        this.query = this.wrapper
-            .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
-            .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
-    }
+        var delta = systems.GetShared<World.SharedData>().delta;
 
-    protected override void DoAction(float delta)
-    {
-        if (!constructionSource.Where(a => a.Value.Entities.Count > 0).Any())
+        var world = systems.GetWorld();
+
+        var constructionEntities = world.Filter()
+            .Inc<ConstructionComponent>()
+            .Inc<PositionComponent>()
+            .Inc<PlayerComponent>()
+            // Might have Availability
+            // Might have HP
+            .End();
+
+        using (var e = constructionEntities.GetEnumerator())
         {
-            return;
-        }
-
-        base.DoAction(delta);
-    }
-
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
-
-        var position = entity.GetComponent<PositionComponent>();
-        var player = entity.GetComponent<PlayerComponent>();
-
-        this.entityData.Entity = entity;
-        
-        wrapper.Data = constructionSource[player.PlayerId].Entities;
-        var closestSource = query.FirstOrDefault();
-
-        var closestConstruction = closestSource?.GetComponent<PositionComponent>()?.Position ?? Vector2Ext.Inf;
-
-        if (position.Position != closestConstruction)
-        {
-            entity.GetComponent<PersonDecisionBuildComponent>().SelectedConstruction?.GetComponent<AvailabilityComponent>().CurrentUsers.Remove(entity);
-            entity.GetComponent<PersonDecisionBuildComponent>().SelectedConstruction = null;
-            return;
-        }
-
-        var construction = closestSource.GetComponent<ConstructionComponent>();
-        if (construction.BuildProgress >= 1)
-        {
-            construction.ConstructionDone?.Invoke(closestSource);
-            construction.ConstructionDone = null;
-            closestSource.RemoveComponent<ConstructionComponent>();
-            return;
-        }
-
-        closestSource.GetComponent<AvailabilityComponent>()?.CurrentUsers.Add(entity);
-        entity.GetComponent<PersonDecisionBuildComponent>().SelectedConstruction = closestSource;
-
-        var builder = entity.GetComponent<BuilderComponent>();
-
-        var hpToPct = 0.01f;
-        var hp = closestSource.GetComponent<HPComponent>();
-        if (hp != null)
-        {
-            hpToPct = 1f / hp.MaxHP;
-        }
-        var buildProgress = builder.BuildSpeed * hpToPct * delta;
-        construction.BuildProgress += buildProgress;
-        if (hp != null)
-        {
-            hp.HP += builder.BuildSpeed;
-            if (hp.HP > hp.MaxHP)
+            if (!e.MoveNext())
             {
-                hp.HP = hp.MaxHP;
+                return;
+            }
+        }
+
+        foreach (var e in constructionEntities)
+        {
+            var res = new object[0];
+            world.GetComponents(e, ref res);
+        }
+
+        var builderEntities = world.Filter()
+            .Inc<PersonDecisionBuildComponent>()
+            .Inc<BuilderComponent>()
+            .Inc<PositionComponent>()
+            .Inc<PlayerComponent>()
+            .End();
+
+
+        var availabilityHolders = world.Filter()
+            .Inc<PersonDecisionBuildComponent>()
+            .Inc<BuilderComponent>()
+            .Inc<AvailabilityHolderComponent>()
+            .End();
+
+        var positions = world.GetPool<PositionComponent>();
+        var players = world.GetPool<PlayerComponent>();
+        var availabilities = world.GetPool<AvailabilityComponent>();
+        var holders = world.GetPool<AvailabilityHolderComponent>();
+        var constructions = world.GetPool<ConstructionComponent>();
+        var builders = world.GetPool<BuilderComponent>();
+        var hps = world.GetPool<HPComponent>();
+
+        foreach (var builderEntity in builderEntities)
+        {
+            var constructionEntity = CommonLambdas.FindClosestAvailableSource(world, constructionEntities, builderEntity, availabilityHolders, false);
+            if (constructionEntity == -1 ||
+                positions.Get(builderEntity).Position != positions.Get(constructionEntity).Position)
+            {
+                holders.Del(builderEntity);
+                continue;
+            }
+
+            holders.GetAdd(builderEntity).OccupiedEntity = constructionEntity;
+
+            var builder = builders.Get(builderEntity);
+
+            ref var construction = ref constructions.Get(constructionEntity);
+
+            var buildProgress = Math.Min(delta * builder.BuildSpeed, construction.MaxBuildProgress - construction.BuildProgress);
+
+            construction.BuildProgress += buildProgress;
+
+            if (hps.Has(constructionEntity))
+            {
+                ref var hp = ref hps.Get(constructionEntity);
+                var hpProgress = hp.MaxHP * buildProgress / construction.MaxBuildProgress;
+
+                hp.HP += hpProgress;
+                if (hp.HP > hp.MaxHP)
+                {
+                    hp.HP = hp.MaxHP;
+                }
             }
         }
     }

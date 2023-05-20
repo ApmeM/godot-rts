@@ -1,37 +1,28 @@
-using System.Collections.Generic;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class PositionUpdateSystem : MatcherEntitySystem
+public class PositionUpdateSystem : IEcsRunSystem
 {
-    private readonly GameContext gameContext;
+    private readonly IMazeBuilder gameContext;
 
-    public PositionUpdateSystem(GameContext gameContext) : base(new Matcher().All<PositionComponent>())
+    public PositionUpdateSystem(IMazeBuilder gameContext)
     {
         this.gameContext = gameContext;
     }
 
-    protected override void OnEntityListChanged(HashSet<Entity> added, HashSet<Entity> changed, HashSet<Entity> removed)
+    public void Run(IEcsSystems systems)
     {
-        base.OnEntityListChanged(added, changed, removed);
-        foreach (var entity in added)
-        {
-            var position = entity.GetComponent<PositionComponent>();
-            position.Position = this.gameContext.GetCellPosition(position.Position);
-            this.gameContext.AddPosition(position);
-        }
-        
-        foreach (var entity in removed)
-        {
-            var position = entity.GetComponent<PositionComponent>();
-            this.gameContext.RemovePosition(position);
-        }
-    }
+        var world = systems.GetWorld();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
-        var position = entity.GetComponent<PositionComponent>();
+        var filter = world.Filter()
+            .Inc<PositionComponent>()
+            .End();
 
-        this.gameContext.UpdatePosition(position);
+        var positions = world.GetPool<PositionComponent>();
+
+        foreach (var entity in filter)
+        {
+            var position = positions.Get(entity);
+            this.gameContext.UpdatePosition(entity, position);
+        }
     }
 }

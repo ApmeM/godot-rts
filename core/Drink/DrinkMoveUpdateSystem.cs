@@ -1,72 +1,53 @@
-using System;
-using System.Linq.Struct;
-using System.Numerics;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class DrinkMoveUpdateSystem : MatcherEntitySystem
+public class DrinkMoveUpdateSystem : IEcsRunSystem
 {
-    private readonly EntityLookup<int> waterSources;
-
-    private readonly CommonLambdas.EntityData entityData;
-    private MultiHashSetWrapper<Entity> wrapper;
-    private RefLinqEnumerable<Entity, OrderBy<Entity, Where<Entity, MultiHashSetWrapperEnumerator<Entity>>, float>> query;
-
-    public DrinkMoveUpdateSystem(EntityLookup<int> drinkSource) : base(new Matcher()
-        .All<PersonDecisionDrinkComponent>()
-        .All<MovingComponent>()
-        .All<PositionComponent>()
-        .Exclude<FatigueSleepComponent>())
+    public void Run(IEcsSystems systems)
     {
-        this.waterSources = drinkSource;
+        var world = systems.GetWorld();
 
-        this.entityData = new CommonLambdas.EntityData();
-        this.wrapper = new MultiHashSetWrapper<Entity>();
-        this.query = this.wrapper
-            .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
-            .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
-    }
+        var waterEntities = world.Filter()
+            .Inc<DrinkableComponent>()
+            .Inc<PositionComponent>()
+            .Inc<PlayerComponent>()
+            // Might have Availability
+            .End();
 
-    protected override void DoAction(float delta)
-    {
-        if (!waterSources.Where(a => a.Value.Entities.Count > 0).Any())
+        using (var e = waterEntities.GetEnumerator())
         {
-            return;
+            if (!e.MoveNext())
+            {
+                return;
+            }
         }
 
-        base.DoAction(delta);
-    }
+        var thristingEntities = world.Filter()
+            .Inc<PersonDecisionDrinkComponent>()
+            .Inc<DrinkThristingComponent>()
+            .Inc<MovingComponent>()
+            .Inc<PositionComponent>()
+            .Inc<PlayerComponent>()
+            .End();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
+        var availabilityHolders = world.Filter()
+            .Inc<PersonDecisionDrinkComponent>()
+            .Inc<DrinkThristingComponent>()
+            .Inc<AvailabilityHolderComponent>()
+            .End();
 
-        var position = entity.GetComponent<PositionComponent>();
-        var player = entity.GetComponent<PlayerComponent>();
+        var movings = world.GetPool<MovingComponent>();
+        var positions = world.GetPool<PositionComponent>();
 
-        this.entityData.Entity = entity;
-
-        wrapper.Data = waterSources[0].Entities;
-        var closestNeutralSource = query.FirstOrDefault();
-        wrapper.Data = waterSources[player.PlayerId].Entities;
-        var closestSelfSource = query.FirstOrDefault();
-
-        var closestSource = closestNeutralSource == null
-            ? closestSelfSource
-            : closestSelfSource == null
-                ? closestNeutralSource
-                : (closestNeutralSource.GetComponent<PositionComponent>().Position -
-                   entity.GetComponent<PositionComponent>().Position).LengthSquared() >
-                  (closestSelfSource.GetComponent<PositionComponent>().Position -
-                   entity.GetComponent<PositionComponent>().Position).LengthSquared()
-                    ? closestSelfSource
-                    : closestNeutralSource;
-
-        var closestWater = closestSource?.GetComponent<PositionComponent>()?.Position ?? Vector2Ext.Inf;
-        if (position.Position == closestWater)
+        foreach (var thristingEntity in thristingEntities)
         {
-            return;
-        }
+            var waterEntity = CommonLambdas.FindClosestAvailableSource(world, waterEntities, thristingEntity, availabilityHolders, true);
+            if (waterEntity == -1 ||
+                positions.GetAdd(thristingEntity).Position == positions.GetAdd(waterEntity).Position)
+            {
+                continue;
+            }
 
-        entity.GetComponent<MovingComponent>().PathTarget = closestWater;
+            movings.GetAdd(thristingEntity).PathTarget = positions.GetAdd(waterEntity).Position;
+        }
     }
 }

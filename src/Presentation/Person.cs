@@ -1,12 +1,13 @@
 using System;
 using Godot;
 using GodotAnalysers;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
 [SceneReference("Person.tscn")]
 public partial class Person : EntityTypeNode2DRenderSystem.IEntityNode2D, IMinimapElement
 {
-    public Entity e { get; set; }
+    public int e { get; set; }
+    public EcsWorld world { get; set; }
 
     public EntityTypeComponent.EntityTypes EntityType => EntityTypeComponent.EntityTypes.Person;
 
@@ -29,6 +30,6 @@ public partial class Person : EntityTypeNode2DRenderSystem.IEntityNode2D, IMinim
     {
         base._Process(delta);
 
-        this.sprite2.Visible = e.GetComponent<SelectedComponent>()?.Enabled ?? false;
+        this.sprite2.Visible = this.world.GetPool<SelectedComponent>().Has(e);
     }
 }

@@ -1,6 +1,3 @@
-using LocomotorECS;
-
-public class PersonDecisionSleepComponent : Component
+public struct PersonDecisionSleepComponent
 {
-    public Entity SelectedHouse;
 }

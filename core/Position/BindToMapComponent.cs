@@ -1,5 +1,3 @@
-using LocomotorECS;
-
-public class BindToMapComponent : Component
+public struct BindToMapComponent
 {
 }

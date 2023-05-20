@@ -1,100 +1,115 @@
-using System;
-using System.Collections.Generic;
-using System.Linq.Struct;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class PersonDecisionUpdateSystem : MatcherEntitySystem
+public class PersonDecisionUpdateSystem : IEcsRunSystem
 {
-    private readonly EntityLookup<int> waterSources;
-    private readonly EntityLookup<int> constructionSource;
-    private readonly EntityLookup<int> restSources;
-
-    private readonly CommonLambdas.EntityData entityData;
-    private MultiHashSetWrapper<Entity> wrapper;
-    private readonly RefLinqEnumerable<Entity, Where<Entity, MultiHashSetWrapperEnumerator<Entity>>> query;
-
-    public PersonDecisionUpdateSystem(
-        EntityLookup<int> waterSources,
-        EntityLookup<int> constructionSource,
-        EntityLookup<int> restSources) : base(new Matcher()
-            .All<PersonComponent>()
-            .All<PlayerComponent>()
-            .Exclude<FatigueSleepComponent>())
+    public void Run(IEcsSystems systems)
     {
-        this.waterSources = waterSources;
-        this.constructionSource = constructionSource;
-        this.restSources = restSources;
+        var world = systems.GetWorld();
 
-        this.entityData = new CommonLambdas.EntityData();
-        this.wrapper = new MultiHashSetWrapper<Entity>();
-        this.query = this.wrapper.Where(CommonLambdas.GetAvailabilityLambda(this.entityData));
-    }
+        var filter = world.Filter()
+            .Inc<PersonComponent>()
+            .Inc<PlayerComponent>()
+            .Exc<FatigueSleepComponent>()
+            .Exc<DeadComponent>()
+            .End();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
+        var waterSources = world.Filter()
+            .Inc<DrinkableComponent>()
+            .Inc<PositionComponent>()
+            .End();
+        var restSources = world.Filter()
+            .Inc<RestComponent>()
+            .Inc<PositionComponent>()
+            .End();
+        var constructionSource = world.Filter()
+            .Inc<ConstructionComponent>()
+            .Inc<PositionComponent>()
+            .End();
 
-        var player = entity.GetComponent<PlayerComponent>();
 
-        this.entityData.Entity = entity;
+        var fatigueAvailabilityHolders = world.Filter()
+            .Inc<PersonDecisionSleepComponent>()
+            .Inc<FatigueComponent>()
+            .Inc<AvailabilityHolderComponent>()
+            .End();
 
-        var thristing = entity.GetComponent<DrinkThristingComponent>();
-        if (thristing != null && (
-                thristing.CurrentThristing < thristing.ThristThreshold ||
-                thristing.CurrentThristing < thristing.MaxThristLevel && entity.GetComponent<PersonDecisionDrinkComponent>().Enabled))
+        var drinkAvailabilityHolders = world.Filter()
+            .Inc<PersonDecisionDrinkComponent>()
+            .Inc<DrinkThristingComponent>()
+            .Inc<AvailabilityHolderComponent>()
+            .End();
+
+        var buildAvailabilityHolders = world.Filter()
+            .Inc<PersonDecisionBuildComponent>()
+            .Inc<BuilderComponent>()
+            .Inc<AvailabilityHolderComponent>()
+            .End();
+
+        var players = world.GetPool<PlayerComponent>();
+        var prints = world.GetPool<PrintComponent>();
+        var thristings = world.GetPool<DrinkThristingComponent>();
+        var decisionDrinks = world.GetPool<PersonDecisionDrinkComponent>();
+        var fatigues = world.GetPool<FatigueComponent>();
+        var decisionSleeps = world.GetPool<PersonDecisionSleepComponent>();
+        var builders = world.GetPool<BuilderComponent>();
+        var decisionBuilds = world.GetPool<PersonDecisionBuildComponent>();
+        var decisionWalks = world.GetPool<PersonDecisionWalkComponent>();
+
+        foreach (var entity in filter)
         {
-            wrapper.Data = waterSources[0].Entities;
-            var result = query.Any();
-            wrapper.Data = waterSources[player.PlayerId].Entities;
-            result = result || query.Any();
-            if (result)
+            ref var player = ref players.GetAdd(entity);
+
+            var thristing = thristings.GetAdd(entity);
+            if (thristing.CurrentThristing < thristing.ThristThreshold ||
+                    thristing.CurrentThristing < thristing.DoneThreshold && decisionDrinks.Has(entity))
             {
-                entity.GetComponent<PrintComponent>().Text = "Drink";
-                this.SetDecision<PersonDecisionDrinkComponent>(entity);
-                return;
+                if (CommonLambdas.FindClosestAvailableSource(world, waterSources, entity, drinkAvailabilityHolders, true) > -1)
+                {
+                    prints.GetAdd(entity).Text = "Drink";
+                    this.SetDecision<PersonDecisionDrinkComponent>(world, entity);
+                    continue;
+                }
             }
-        }
 
-        wrapper.Data = restSources[player.PlayerId].Entities;
-        var fatigue = entity.GetComponent<FatigueComponent>();
-        if (fatigue != null && fatigue.CurrentFatigue > fatigue.FatigueThreshold && query.Any())
-        {
-            entity.GetComponent<PrintComponent>().Text = "Sleep";
-            this.SetDecision<PersonDecisionSleepComponent>(entity);
-            return;
-        }
+            var fatigue = fatigues.GetAdd(entity);
+            if (fatigue.CurrentFatigue > fatigue.FatigueThreshold && CommonLambdas.FindClosestAvailableSource(world, restSources, entity, fatigueAvailabilityHolders, false) > -1)
+            {
+                prints.GetAdd(entity).Text = "Sleep";
+                this.SetDecision<PersonDecisionSleepComponent>(world, entity);
+                continue;
+            }
 
-        wrapper.Data = constructionSource[player.PlayerId].Entities;
-        var builder = entity.GetComponent<BuilderComponent>();
-        if (builder != null && query.Any())
-        {
-            entity.GetComponent<PrintComponent>().Text = "Build";
-            this.SetDecision<PersonDecisionBuildComponent>(entity);
-            return;
-        }
+            var builder = builders.GetAdd(entity);
+            if (CommonLambdas.FindClosestAvailableSource(world, constructionSource, entity, buildAvailabilityHolders, false) > -1)
+            {
+                prints.GetAdd(entity).Text = "Build";
+                this.SetDecision<PersonDecisionBuildComponent>(world, entity);
+                continue;
+            }
 
-        this.SetDecision<PersonDecisionWalkComponent>(entity);
-        entity.GetComponent<PrintComponent>().Text = "Walk";
+            prints.GetAdd(entity).Text = "Walk";
+            this.SetDecision<PersonDecisionWalkComponent>(world, entity);
+        }
     }
 
-    private void SetDecision<T>(Entity entity)
+    private void SetDecision<T>(EcsWorld world, int entity) where T : struct
     {
-        CheckDecision<T, PersonDecisionDrinkComponent>(entity);
-        CheckDecision<T, PersonDecisionSleepComponent>(entity);
-        CheckDecision<T, PersonDecisionBuildComponent>(entity);
-        CheckDecision<T, PersonDecisionWalkComponent>(entity);
+        CheckDecision<T, PersonDecisionDrinkComponent>(world, entity);
+        CheckDecision<T, PersonDecisionSleepComponent>(world, entity);
+        CheckDecision<T, PersonDecisionBuildComponent>(world, entity);
+        CheckDecision<T, PersonDecisionWalkComponent>(world, entity);
     }
 
 
-    private void CheckDecision<T1, T2>(Entity entity) where T2 : Component
+    private void CheckDecision<T1, T2>(EcsWorld world, int entity) where T2 : struct where T1 : struct
     {
         if (typeof(T1) != typeof(T2))
         {
-            entity.GetComponent<T2>().Disable();
+            world.GetPool<T2>().Del(entity);
         }
         else
         {
-            entity.GetComponent<T2>().Enable();
+            world.GetPool<T2>().GetAdd(entity);
         }
     }
 }

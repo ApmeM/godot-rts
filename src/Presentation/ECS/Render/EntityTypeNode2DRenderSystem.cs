@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class EntityTypeNode2DRenderSystem : MatcherEntitySystem
+public class EntityTypeNode2DRenderSystem : IEcsRunSystem
 {
     public interface IEntityNode2D
     {
-        Entity e { set; }
+        int e { set; }
+        EcsWorld world {set;}
         EntityTypeComponent.EntityTypes EntityType { get; }
         int PlayerId { get; }
     }
@@ -16,7 +17,7 @@ public class EntityTypeNode2DRenderSystem : MatcherEntitySystem
     private Dictionary<EntityTypeComponent.EntityTypes, PackedScene> sources;
     private readonly Node2D parent;
 
-    public EntityTypeNode2DRenderSystem(Node2D parent) : base(new Matcher().Exclude<Node2DComponent>().All<EntityTypeComponent>())
+    public EntityTypeNode2DRenderSystem(Node2D parent)
     {
         this.sources = Enum.GetValues(typeof(EntityTypeComponent.EntityTypes))
                             .Cast<EntityTypeComponent.EntityTypes>()
@@ -24,22 +25,27 @@ public class EntityTypeNode2DRenderSystem : MatcherEntitySystem
         this.parent = parent;
     }
 
-    protected override void OnEntityListChanged(HashSet<Entity> added, HashSet<Entity> changed, HashSet<Entity> removed)
+    public void Run(IEcsSystems systems)
     {
-        base.OnEntityListChanged(added, changed, removed);
+        var world = systems.GetWorld();
 
-        foreach (var entity in added)
+        var filter = world.Filter()
+            .Exc<Node2DComponent>()
+            .Inc<EntityTypeComponent>()
+            .End();
+
+        var nodes = world.GetPool<Node2DComponent>();
+        var types = world.GetPool<EntityTypeComponent>();
+
+        foreach (var entity in filter)
         {
-            var entityType = entity.GetComponent<EntityTypeComponent>().EntityType;
+            var entityType = types.Get(entity).EntityType;
             var scene = this.sources[entityType];
             var inst = scene.Instance<Node2D>();
             this.parent.AddChild(inst);
-            entity.GetOrCreateComponent<Node2DComponent>().Node = inst;
+            nodes.Add(entity).Node = inst;
             ((IEntityNode2D)inst).e = entity;
+            ((IEntityNode2D)inst).world = world;
         }
-    }
-
-    protected override void DoAction(Entity entity, float delta)
-    {
     }
 }

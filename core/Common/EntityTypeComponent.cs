@@ -1,6 +1,4 @@
-using LocomotorECS;
-
-public class EntityTypeComponent : Component
+public struct EntityTypeComponent
 {
     public enum EntityTypes
     {

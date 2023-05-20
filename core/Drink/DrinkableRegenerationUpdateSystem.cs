@@ -1,29 +1,36 @@
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class DrinkableRegenerationUpdateSystem : MatcherEntitySystem
+public class DrinkableRegenerationUpdateSystem : IEcsRunSystem
 {
-    public DrinkableRegenerationUpdateSystem() : base(new Matcher()
-        .All<DrinkableRegenerationComponent>()
-        .All<DrinkableComponent>())
+    public void Run(IEcsSystems systems)
     {
-    }
-
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
-
-        var drinkable = entity.GetComponent<DrinkableComponent>();
-        var regeneration = entity.GetComponent<DrinkableRegenerationComponent>();
-
-        if (drinkable.CurrentAmount >= regeneration.MaxAmount)
-        {
-            return;
-        }
+        var delta = systems.GetShared<World.SharedData>().delta;
         
-        drinkable.CurrentAmount += delta * regeneration.Regeneration;
-        if (drinkable.CurrentAmount > regeneration.MaxAmount)
+        var world = systems.GetWorld();
+
+        var filter = world.Filter()
+            .Inc<DrinkableRegenerationComponent>()
+            .Inc<DrinkableComponent>()
+            .End();
+
+        var drinkables = world.GetPool<DrinkableComponent>();
+        var regenerations = world.GetPool<DrinkableRegenerationComponent>();
+
+        foreach (var entity in filter)
         {
-            drinkable.CurrentAmount = regeneration.MaxAmount;
+            ref var drinkable = ref drinkables.GetAdd(entity);
+            var regeneration = regenerations.GetAdd(entity);
+
+            if (drinkable.CurrentAmount >= regeneration.MaxAmount)
+            {
+                continue;
+            }
+
+            drinkable.CurrentAmount += delta * regeneration.Regeneration;
+            if (drinkable.CurrentAmount > regeneration.MaxAmount)
+            {
+                drinkable.CurrentAmount = regeneration.MaxAmount;
+            }
         }
     }
 }

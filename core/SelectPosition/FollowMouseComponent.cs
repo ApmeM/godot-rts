@@ -1,5 +1,3 @@
-using LocomotorECS;
-
-public class FollowMouseComponent : Component
+public struct FollowMouseComponent
 {
 }

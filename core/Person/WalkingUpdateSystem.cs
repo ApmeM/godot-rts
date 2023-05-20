@@ -1,32 +1,36 @@
 using System;
 using System.Numerics;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class WalkingUpdateSystem : MatcherEntitySystem
+public class WalkingUpdateSystem : IEcsRunSystem
 {
     private readonly Random r = new Random();
 
-    public WalkingUpdateSystem() 
-        : base(new Matcher()
-            .All<PersonDecisionWalkComponent>()
-            .All<MovingComponent>()
-            .All<PositionComponent>()
-            .Exclude<FatigueSleepComponent>())
+    public void Run(IEcsSystems systems)
     {
-    }
+        var world = systems.GetWorld();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
+        var filter = world.Filter()
+            .Inc<PersonDecisionWalkComponent>()
+            .Inc<MovingComponent>()
+            .Inc<PositionComponent>()
+            .Exc<FatigueSleepComponent>()
+            .End();
 
-        var moving = entity.GetComponent<MovingComponent>();
-        var position = entity.GetComponent<PositionComponent>();
+        var movings = world.GetPool<MovingComponent>();
+        var positions = world.GetPool<PositionComponent>();
 
-        if (moving.PathTarget != Vector2Ext.Inf)
+        foreach (var entity in filter)
         {
-            return;
-        }
+            ref var moving = ref movings.GetAdd(entity);
+            var position = positions.GetAdd(entity);
 
-        moving.PathTarget = position.Position + new Vector2(r.Next(250) - 125, r.Next(250) - 125);
+            if (moving.PathTarget != Vector2Ext.Inf)
+            {
+                continue;
+            }
+
+            moving.PathTarget = position.Position + new Vector2(r.Next(250) - 125, r.Next(250) - 125);
+        }
     }
 }

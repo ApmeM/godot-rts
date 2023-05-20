@@ -1,81 +1,69 @@
 using System;
-using System.Collections.Generic;
-using System.Linq.Struct;
-using System.Numerics;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class DrinkProcessUpdateSystem : MatcherEntitySystem
+public class DrinkProcessUpdateSystem : IEcsRunSystem
 {
-    private EntityLookup<int> waterSources;
-
-    private readonly CommonLambdas.EntityData entityData;
-    private MultiHashSetWrapper<Entity> wrapper;
-    private RefLinqEnumerable<Entity, OrderBy<Entity, Where<Entity, MultiHashSetWrapperEnumerator<Entity>>, float>> query;
-
-    public DrinkProcessUpdateSystem(EntityLookup<int> drinkSource) : base(new Matcher()
-        .All<PersonDecisionDrinkComponent>()
-        .All<DrinkThristingComponent>()
-        .All<PositionComponent>()
-        .Exclude<FatigueSleepComponent>())
+    public void Run(IEcsSystems systems)
     {
-        this.waterSources = drinkSource;
-        this.entityData = new CommonLambdas.EntityData();
-        this.wrapper = new MultiHashSetWrapper<Entity>();
-        this.query = this.wrapper
-            .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
-            .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
-    }
+        var delta = systems.GetShared<World.SharedData>().delta;
+        var world = systems.GetWorld();
 
-    protected override void DoAction(float delta)
-    {
-        if (!waterSources.Where(a => a.Value.Entities.Count > 0).Any())
+        var waterEntities = world.Filter()
+            .Inc<DrinkableComponent>()
+            .Inc<PositionComponent>()
+            .Inc<PlayerComponent>()
+            // Might have Availability
+            .End();
+
+        using (var e = waterEntities.GetEnumerator())
         {
-            return;
+            if (!e.MoveNext())
+            {
+                return;
+            }
         }
 
-        base.DoAction(delta);
-    }
+        var filter = world.Filter()
+            .Inc<PersonDecisionDrinkComponent>()
+            .Inc<DrinkThristingComponent>()
+            .Inc<PositionComponent>()
+            .Inc<PlayerComponent>()
+            .End();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
 
-        var thristing = entity.GetComponent<DrinkThristingComponent>();
-        var position = entity.GetComponent<PositionComponent>();
-        var player = entity.GetComponent<PlayerComponent>();
+        var availabilityHolders = world.Filter()
+            .Inc<PersonDecisionDrinkComponent>()
+            .Inc<DrinkThristingComponent>()
+            .Inc<AvailabilityHolderComponent>()
+            .End();
 
-        this.entityData.Entity = entity;
-        
-        wrapper.Data = waterSources[0].Entities;
-        var closestNeutralSource = query.FirstOrDefault();
-        wrapper.Data = waterSources[player.PlayerId].Entities;
-        var closestSelfSource = query.FirstOrDefault();
+        var positions = world.GetPool<PositionComponent>();
+        var players = world.GetPool<PlayerComponent>();
+        var availabilities = world.GetPool<AvailabilityComponent>();
+        var holders = world.GetPool<AvailabilityHolderComponent>();
+        var thristings = world.GetPool<DrinkThristingComponent>();
+        var drinkables = world.GetPool<DrinkableComponent>();
 
-        var closestSource = closestNeutralSource == null
-            ? closestSelfSource
-            : closestSelfSource == null
-                ? closestNeutralSource
-                : (closestNeutralSource.GetComponent<PositionComponent>().Position -
-                   entity.GetComponent<PositionComponent>().Position).LengthSquared() >
-                  (closestSelfSource.GetComponent<PositionComponent>().Position -
-                   entity.GetComponent<PositionComponent>().Position).LengthSquared()
-                    ? closestSelfSource
-                    : closestNeutralSource;
-        
-        var closestWater = closestSource?.GetComponent<PositionComponent>()?.Position ?? Vector2Ext.Inf;
-        if (position.Position != closestWater)
+        foreach (var entity in filter)
         {
-            entity.GetComponent<PersonDecisionDrinkComponent>().SelectedSource?.GetComponent<AvailabilityComponent>().CurrentUsers.Remove(entity);
-            entity.GetComponent<PersonDecisionDrinkComponent>().SelectedSource = null;
-            return;
+            var waterEntity = CommonLambdas.FindClosestAvailableSource(world, waterEntities, entity, availabilityHolders, true);
+            if (waterEntity == -1 ||
+                positions.GetAdd(entity).Position != positions.GetAdd(waterEntity).Position)
+            {
+                holders.Del(entity);
+                continue;
+            }
+
+            holders.GetAdd(entity).OccupiedEntity = waterEntity;
+
+            ref var drinkable = ref drinkables.GetAdd(waterEntity);
+            ref var thristing = ref thristings.GetAdd(entity);
+
+            var toDrink = Math.Min(thristing.DrinkSpeed * delta, drinkable.CurrentAmount);
+            toDrink = Math.Min(toDrink, thristing.MaxThristLevel - thristing.CurrentThristing);
+            
+            drinkable.CurrentAmount -= toDrink;
+            thristing.CurrentThristing += toDrink;
         }
-
-        closestSource.GetComponent<AvailabilityComponent>()?.CurrentUsers.Add(entity);
-        entity.GetComponent<PersonDecisionDrinkComponent>().SelectedSource = closestSource;
-
-        var drinkable = closestSource.GetComponent<DrinkableComponent>();
-        var toDrink = Math.Min(thristing.DrinkSpeed * delta, drinkable.CurrentAmount);
-        drinkable.CurrentAmount -= toDrink;
-        thristing.CurrentThristing += toDrink;
     }
 }

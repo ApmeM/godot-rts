@@ -1,5 +1,3 @@
-using LocomotorECS;
-
-public class SelectedComponent : Component
+public struct SelectedComponent
 {
 }

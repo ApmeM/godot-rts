@@ -1,6 +1,4 @@
-using LocomotorECS;
-
-public class DrinkableRegenerationComponent : Component
+public struct DrinkableRegenerationComponent
 {
     public float MaxAmount;
 

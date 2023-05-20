@@ -1,6 +1,4 @@
-using LocomotorECS;
-
-public class BuilderComponent : Component
+public struct BuilderComponent
 {
-    public float BuildSpeed = 1;
+    public float BuildSpeed;
 }

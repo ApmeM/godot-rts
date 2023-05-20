@@ -1,26 +1,45 @@
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class FatigueToSleepUpdateSystem : MatcherEntitySystem
+public class FatigueToSleepUpdateSystem : IEcsRunSystem
 {
-    private readonly Entity notification;
-
-    public FatigueToSleepUpdateSystem(Entity notification) : base(new Matcher()
-        .All<FatigueComponent>()
-        .Exclude<FatigueSleepComponent>())
+    public void Run(IEcsSystems systems)
     {
-        this.notification = notification;
-    }
+        var world = systems.GetWorld();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
+        var filter = world.Filter()
+            .Inc<FatigueComponent>()
+            .Exc<FatigueSleepComponent>()
+            .Exc<DeadComponent>()
+            .End();
 
-        var fatigue = entity.GetComponent<FatigueComponent>();
+        var notificationEntities = world.Filter()
+            .Inc<NotificationComponent>()
+            .End();
 
-        if (fatigue.CurrentFatigue > fatigue.MaxFatigue)
+        var fatigues = world.GetPool<FatigueComponent>();
+        var fatigueSleepigs = world.GetPool<FatigueSleepComponent>();
+        var notifications = world.GetPool<NotificationComponent>();
+
+        var notified = false;
+
+        foreach (var entity in filter)
         {
-            entity.GetComponent<FatigueSleepComponent>().Enable();
-            this.notification.GetComponent<NotificationComponent>().SleepingOnTheGround = true;
+            var fatigue = fatigues.Get(entity);
+            if (fatigue.CurrentFatigue <= fatigue.MaxFatigue)
+            {
+                continue;
+            }
+
+            fatigueSleepigs.Add(entity).RestSpeed = fatigues.Get(entity).DefaultRest;
+            fatigueSleepigs.Get(entity).InHouse = false;
+            if (!notified)
+            {
+                notified = true;
+                foreach (var notificationEntity in notificationEntities)
+                {
+                    notifications.GetAdd(notificationEntity).SleepingOnTheGround = true;
+                }
+            }
         }
     }
 }

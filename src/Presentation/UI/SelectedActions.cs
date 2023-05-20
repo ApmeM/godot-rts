@@ -3,15 +3,11 @@ using System.Linq;
 using Godot;
 using GodotAnalysers;
 using GodotRts.Presentation.Utils;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
 [SceneReference("SelectedActions.tscn")]
 public partial class SelectedActions
 {
-    private World world;
-    private MatcherEntityList selectedList;
-    private bool enititiesCountChanged = true;
-
     private static readonly List<EntityTypeComponent.EntityTypes> commonActions = new List<EntityTypeComponent.EntityTypes>{
                 EntityTypeComponent.EntityTypes.ArtificialWell,
                 EntityTypeComponent.EntityTypes.House
@@ -19,16 +15,7 @@ public partial class SelectedActions
     [Export]
     public int PlayerId;
 
-    public World World
-    {
-        get => world;
-        set
-        {
-            world = value;
-            selectedList = new MatcherEntityList(world.el, new Matcher().All<SelectedComponent>());
-            selectedList.EntityListChanged += (a, b, c) => this.enititiesCountChanged = this.enititiesCountChanged || a.Any() || c.Any();
-        }
-    }
+    public World World;
 
     public override void _Ready()
     {
@@ -39,7 +26,7 @@ public partial class SelectedActions
     public override void _Process(float delta)
     {
         base._Process(delta);
-
+/*
         if (enititiesCountChanged)
         {
             enititiesCountChanged = false;
@@ -60,8 +47,9 @@ public partial class SelectedActions
                 this.actions.AddChild(b);
             }
         }
+        */
     }
-
+/*
     private void StartDrag(EntityTypeComponent.EntityTypes type)
     {
         var e = new Entity();
@@ -75,4 +63,5 @@ public partial class SelectedActions
 
         world.el.Add(e);
     }
+*/
 }

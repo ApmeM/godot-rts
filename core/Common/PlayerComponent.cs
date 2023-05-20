@@ -1,21 +1,4 @@
-using LocomotorECS;
-
-public class PlayerComponent : Component
+public struct PlayerComponent
 {
-    private int playerId;
-
-    public int PlayerId
-    {
-        get => playerId;
-        set
-        {
-            if (playerId == value)
-            {
-                return;
-            }
-            
-            playerId = value;
-            this.NotifyCustomPropertyChanged();
-        }
-    }
+    public int PlayerId;
 }

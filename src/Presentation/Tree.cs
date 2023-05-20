@@ -1,11 +1,12 @@
 using Godot;
 using GodotAnalysers;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
 [SceneReference("Tree.tscn")]
 public partial class Tree : EntityTypeNode2DRenderSystem.IEntityNode2D, IMinimapElement
 {
-    public Entity e { get; set; }
+    public int e { get; set; }
+    public EcsWorld world { get; set; }
 
     public EntityTypeComponent.EntityTypes EntityType => EntityTypeComponent.EntityTypes.Tree;
 

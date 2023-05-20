@@ -19,8 +19,9 @@ public partial class Main
         // For debug purposes all achievements can be reset
         this.di.localAchievementRepository.ResetAchievements();
 
-        this.world = new World(map.WorldToMap, map.MapToWorld);
+        this.world = new World(map.WorldToMap, map.MapToWorld, this.map.CellSize.x, this.map.CellSize.y);
         this.world.AddGodotSpecific(this.map);
+        this.world.Init();
         // this.world.BuildFromDesignTime(this.map);
         this.world.BuildForTest(this.map.CellSize.x, this.map.CellSize.y);
         this.map.ClearChildren();
@@ -30,16 +31,25 @@ public partial class Main
 
     public override void _Process(float delta)
     {
-        // delta = 0.1f; // To act in a same way as in console application.
+        delta = 0.1f; // To act in a same way as in console application.
         totalTime += delta;
         base._Process(delta);
-        this.world.Process(delta);
 
-        var notification = this.world.el.Entities.Select(a => a.GetComponent<NotificationComponent>()).Where(a => a != null).First();
-        var persons = this.world.el.FindEntitiesByTag((int)EntityTypeComponent.EntityTypes.Person);
+        int notificationEntity;
+        using (var notifications = this.world.world.Filter().Inc<NotificationComponent>().End().GetEnumerator())
+        {
+            notifications.MoveNext();
+            notificationEntity = notifications.Current;
+        }
+        var notificationComponent = world.world.GetPool<NotificationComponent>();
 
-        this.notification.Text = $"Step {((int)totalTime).ToString()}, population = {persons.Count.ToString()}, totalEntities = {this.world.el.Entities.Count.ToString()}";
-        
+        var persons = world.world.Filter().Inc<PersonComponent>().End();
+        var notification = notificationComponent.GetAdd(notificationEntity);
+        world.Process(delta);
+        var count = persons.Build().Count();
+
+        this.notification.Text = $"Step {((int)totalTime).ToString()}, population = {count.ToString()}";
+
         if (notification.SleepingOnTheGround)
         {
             this.floatingTextManager.ShowValue("Your people are sleeping on the ground. Build more houses.");

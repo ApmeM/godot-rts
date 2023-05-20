@@ -1,6 +1,4 @@
-using LocomotorECS;
-
-public class RestComponent : Component
+public struct RestComponent
 {
     public float Regeneration;
 }

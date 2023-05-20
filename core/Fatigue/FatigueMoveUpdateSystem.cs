@@ -1,61 +1,60 @@
-using System;
-using System.Linq.Struct;
-using System.Numerics;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class FatigueMoveUpdateSystem : MatcherEntitySystem
+public class FatigueMoveUpdateSystem : IEcsRunSystem
 {
-    private EntityLookup<int> restSources;
-
-    private readonly CommonLambdas.EntityData entityData;
-    private MultiHashSetWrapper<Entity> wrapper;
-    private RefLinqEnumerable<Entity, OrderBy<Entity, Where<Entity, MultiHashSetWrapperEnumerator<Entity>>, float>> query;
-
-    public FatigueMoveUpdateSystem(EntityLookup<int> restSources) : base(new Matcher()
-        .All<PersonDecisionSleepComponent>()
-        .All<PositionComponent>()
-        .All<MovingComponent>()
-        .All<PlayerComponent>()
-        .Exclude<FatigueSleepComponent>())
+    public void Run(IEcsSystems systems)
     {
-        this.restSources = restSources;
-        this.entityData = new CommonLambdas.EntityData();
-        this.wrapper = new MultiHashSetWrapper<Entity>();
-        this.query = this.wrapper
-            .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
-            .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
-    }
+        var world = systems.GetWorld();
 
-    protected override void DoAction(float delta)
-    {
-        if (!restSources.Where(a => a.Value.Entities.Count > 0).Any())
+        var restEntities = world.Filter()
+            .Inc<RestComponent>()
+            .Inc<PositionComponent>()
+            // Might have Availability
+            .End();
+
+        using (var e = restEntities.GetEnumerator())
         {
-            return;
+            if (!e.MoveNext())
+            {
+                return;
+            }
         }
 
-        base.DoAction(delta);
-    }
+        var filter = world.Filter()
+            .Inc<PersonDecisionSleepComponent>()
+            .Inc<FatigueComponent>()
+            .Inc<MovingComponent>()
+            .Inc<PositionComponent>()
+            .Inc<PlayerComponent>()
+            .End();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
+        var availabilityHolders = world.Filter()
+            .Inc<FatigueSleepComponent>()
+            .Inc<FatigueComponent>()
+            .Inc<AvailabilityHolderComponent>()
+            .End();
 
-        var position = entity.GetComponent<PositionComponent>();
-        var player = entity.GetComponent<PlayerComponent>();
+        var rests = world.GetPool<RestComponent>();
+        var movings = world.GetPool<MovingComponent>();
+        var positions = world.GetPool<PositionComponent>();
+        var sleeps = world.GetPool<FatigueSleepComponent>();
 
-        this.entityData.Entity = entity;
-        
-        wrapper.Data = restSources[player.PlayerId].Entities;
-        var closestSource = query.FirstOrDefault();
-
-        var closestRest = closestSource?.GetComponent<PositionComponent>()?.Position ?? Vector2Ext.Inf;
-
-        if (position.Position == closestRest)
+        foreach (var entity in filter)
         {
-            entity.GetComponent<FatigueSleepComponent>().Enable();
-            return;
-        }
+            var restEntity = CommonLambdas.FindClosestAvailableSource(world, restEntities, entity, availabilityHolders, false);
+            if (restEntity == -1)
+            {
+                continue;
+            }
 
-        entity.GetComponent<MovingComponent>().PathTarget = closestRest;
+            if (positions.Get(entity).Position == positions.Get(restEntity).Position)
+            {
+                sleeps.Add(entity).RestSpeed = rests.Get(restEntity).Regeneration;
+                sleeps.Get(entity).InHouse = true;
+                continue;
+            }
+
+            movings.Get(entity).PathTarget = positions.Get(restEntity).Position;
+        }
     }
 }

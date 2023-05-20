@@ -1,19 +1,26 @@
 using Godot;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class Node2DPositionRenderSystem : MatcherEntitySystem
+public class Node2DPositionRenderSystem : IEcsRunSystem
 {
-    public Node2DPositionRenderSystem() : base(new Matcher().All<Node2DComponent>().All<PositionComponent>())
+    public void Run(IEcsSystems systems)
     {
-    }
+        var world = systems.GetWorld();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
+        var filter = world.Filter()
+            .Inc<Node2DComponent>()
+            .Inc<PositionComponent>()
+            .End();
 
-        var node = entity.GetComponent<Node2DComponent>();
-        var position = entity.GetComponent<PositionComponent>();
-        
-        node.Node.Position = new Vector2(position.Position.X, position.Position.Y);
+        var nodes = world.GetPool<Node2DComponent>();
+        var positions = world.GetPool<PositionComponent>();
+
+        foreach (var entity in filter)
+        {
+            ref var node = ref nodes.GetAdd(entity);
+            var position = positions.GetAdd(entity);
+
+            node.Node.Position = new Vector2(position.Position.X, position.Position.Y);
+        }
     }
 }

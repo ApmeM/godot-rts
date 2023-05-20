@@ -1,11 +1,12 @@
 using GodotAnalysers;
 using Godot;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
 [SceneReference("Well.tscn")]
 public partial class Well : EntityTypeNode2DRenderSystem.IEntityNode2D
 {
-    public Entity e { get; set; }
+    public int e { get; set; }
+    public EcsWorld world { get; set; }
 
     public EntityTypeComponent.EntityTypes EntityType => EntityTypeComponent.EntityTypes.Well;
 

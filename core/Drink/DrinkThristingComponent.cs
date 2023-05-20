@@ -1,8 +1,8 @@
-using LocomotorECS;
-
-public class DrinkThristingComponent : Component
+public struct DrinkThristingComponent
 {
     public float ThristThreshold;
+    
+    public float DoneThreshold;
 
     public float CurrentThristing;
 

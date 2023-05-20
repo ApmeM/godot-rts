@@ -1,4 +1,3 @@
-using LocomotorECS;
-public class SelectPositionMouseComponent : Component
+public struct SelectPositionMouseComponent
 {
 }

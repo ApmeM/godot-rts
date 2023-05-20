@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Numerics;
-using LocomotorECS;
 
-public class MovingComponent : Component
+public struct MovingComponent
 {
-    public readonly List<Vector2> Path = new List<Vector2>();
+    public List<Vector2> Path;
 
-    public Vector2 PathTarget = Vector2Ext.Inf;
+    public Vector2 PathTarget;
 
     public float MoveSpeed;
 }

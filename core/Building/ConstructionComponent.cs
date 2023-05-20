@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
-using LocomotorECS;
 
-public class ConstructionComponent : Component
+public struct ConstructionComponent
 {
     public float BuildProgress;
+    
+    public float MaxBuildProgress;
 
-    public Action<Entity> ConstructionDone;
+    public Action<int> ConstructionDone;
 }

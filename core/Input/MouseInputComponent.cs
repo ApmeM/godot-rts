@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
-using LocomotorECS;
-public class MouseInputComponent : Component
+
+public struct MouseInputComponent
 {
     public enum ButtonList
     {

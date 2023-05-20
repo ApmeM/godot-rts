@@ -3,7 +3,21 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-public class GameContext
+public interface IPathFinder
+{
+    List<Vector2> FindPath(Vector2 from, Vector2 to);
+}
+
+public interface IMazeBuilder
+{
+    void UpdatePosition(int entity, PositionComponent context);
+    Vector2 GetCellPosition(Vector2 pos);
+    void AddPosition(int entity, PositionComponent context);
+    void RemovePosition(int entity, PositionComponent context);
+    void ClearMap();
+}
+
+public class GameContext : IMazeBuilder, IPathFinder
 {
     public GameContext(Func<Vector2, Vector2> worldToMap, Func<Vector2, Vector2> mapToWorld)
     {
@@ -13,33 +27,33 @@ public class GameContext
         this.Pathfinder = new AStarPathfinder<Vector2>(Map);
     }
 
-    public readonly PathfindingMap Map;
-    public readonly IPathfinder<Vector2> Pathfinder;
+    public PathfindingMap Map { get; private set; }
+    public IPathfinder<Vector2> Pathfinder { get; private set; }
 
-    private readonly Dictionary<PositionComponent, Vector2> knownPositions = new Dictionary<PositionComponent, Vector2>();
+    private readonly Dictionary<int, Vector2> knownPositions = new Dictionary<int, Vector2>();
     private readonly Func<Vector2, Vector2> mapToWorld;
     private readonly Func<Vector2, Vector2> worldToMap;
     private readonly List<Vector2> findPathResult = new List<Vector2>();
 
-    public void UpdatePosition(PositionComponent context)
+    public void UpdatePosition(int entity, PositionComponent context)
     {
-        if (context.BlockingCells.Length == 0)
+        if (context.BlockingCells == null || context.BlockingCells.Length == 0)
         {
             return;
         }
 
-        if (this.knownPositions.ContainsKey(context))
+        if (this.knownPositions.ContainsKey(entity))
         {
             var newPos = this.worldToMap(context.Position);
-            var oldPos = this.knownPositions[context];
+            var oldPos = this.knownPositions[entity];
             if (oldPos == newPos)
             {
                 return;
             }
-            this.RemovePosition(context);
+            this.RemovePosition(entity, context);
         }
 
-        this.AddPosition(context);
+        this.AddPosition(entity, context);
     }
 
     public Vector2 GetCellPosition(Vector2 pos)
@@ -47,16 +61,16 @@ public class GameContext
         return this.mapToWorld(this.worldToMap(pos));
     }
 
-    public void AddPosition(PositionComponent context)
+    public void AddPosition(int entity, PositionComponent context)
     {
         var newPos = this.worldToMap(context.Position);
-        if (context.BlockingCells.Length == 0)
+        if (context.BlockingCells == null || context.BlockingCells.Length == 0)
         {
             return;
         }
 
-        System.Diagnostics.Debug.Assert(!this.knownPositions.ContainsKey(context));
-        this.knownPositions[context] = newPos;
+        System.Diagnostics.Debug.Assert(!this.knownPositions.ContainsKey(entity));
+        this.knownPositions[entity] = newPos;
         foreach (var dir in context.BlockingCells)
         {
             var cell = newPos + dir;
@@ -65,17 +79,17 @@ public class GameContext
         }
     }
 
-    public void RemovePosition(PositionComponent context)
+    public void RemovePosition(int entity, PositionComponent context)
     {
-        if (context.BlockingCells.Length == 0)
+        if (context.BlockingCells == null || context.BlockingCells.Length == 0)
         {
             return;
         }
 
-        System.Diagnostics.Debug.Assert(this.knownPositions.ContainsKey(context));
+        System.Diagnostics.Debug.Assert(this.knownPositions.ContainsKey(entity));
 
-        var prevPos = this.knownPositions[context];
-        this.knownPositions.Remove(context);
+        var prevPos = this.knownPositions[entity];
+        this.knownPositions.Remove(entity);
         foreach (var dir in context.BlockingCells)
         {
             var cell = prevPos + dir;
@@ -104,7 +118,7 @@ public class GameContext
         }
 
         findPathResult.Clear();
-        foreach(var path in (List<Vector2>)pathMap)
+        foreach (var path in (List<Vector2>)pathMap)
         {
             findPathResult.Add(this.mapToWorld(path));
         }

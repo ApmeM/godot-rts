@@ -1,5 +1,3 @@
-using LocomotorECS;
-
-public class DeadComponent : Component
+public struct DeadComponent
 {
 }

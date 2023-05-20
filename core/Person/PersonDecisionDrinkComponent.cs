@@ -1,6 +1,3 @@
-using LocomotorECS;
-
-public class PersonDecisionDrinkComponent : Component
+public struct PersonDecisionDrinkComponent
 {
-    public Entity SelectedSource;
 }

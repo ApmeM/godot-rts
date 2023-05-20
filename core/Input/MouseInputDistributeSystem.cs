@@ -1,22 +1,34 @@
-using LocomotorECS;
+using System;
+using System.Linq.Struct;
+using Leopotam.EcsLite;
 
-public class MouseInputDistributeSystem : MatcherEntitySystem
+public class MouseInputDistributeSystem : IEcsRunSystem
 {
-    private readonly Entity inputEntity;
-
-    public MouseInputDistributeSystem(Entity inputEntity) : base(new Matcher().All<MouseInputComponent>())
+    public void Run(IEcsSystems systems)
     {
-        this.inputEntity = inputEntity;
-    }
+        var world = systems.GetWorld();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        var currentMouse = inputEntity.GetComponent<MouseInputDistributionComponent>();
-        var newMouse = entity.GetComponent<MouseInputComponent>();
+        var inputEntity = world.Filter()
+            .Inc<MouseInputDistributionComponent>()
+            .End()
+            .Build()
+            .Single();
 
-        newMouse.MousePosition = currentMouse.MousePosition;
-        newMouse.MouseButtons = currentMouse.MouseButtons;
-        newMouse.JustPressedButtins = currentMouse.JustPressedButtins;
-        newMouse.JustReleasedButtins = currentMouse.JustReleasedButtins;
+        var mouseInputEntities = world.Filter()
+            .Inc<MouseInputComponent>()
+            .End();
+
+        var mouseInputs = world.GetPool<MouseInputComponent>();
+        var toDistribute = world.GetPool<MouseInputDistributionComponent>().Get(inputEntity);
+
+        foreach (var mouseInputEntity in mouseInputEntities)
+        {
+            ref var mouseInput = ref mouseInputs.GetAdd(mouseInputEntity);
+
+            mouseInput.MousePosition = toDistribute.MousePosition;
+            mouseInput.MouseButtons = toDistribute.MouseButtons;
+            mouseInput.JustPressedButtins = toDistribute.JustPressedButtins;
+            mouseInput.JustReleasedButtins = toDistribute.JustReleasedButtins;
+        }
     }
 }

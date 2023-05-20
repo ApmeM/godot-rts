@@ -1,8 +1,7 @@
 using System.Numerics;
-using LocomotorECS;
 
-public class PositionComponent : Component
+public struct PositionComponent
 {
     public Vector2 Position;
-    public Vector2[] BlockingCells = new Vector2[0];
+    public Vector2[] BlockingCells;
 }

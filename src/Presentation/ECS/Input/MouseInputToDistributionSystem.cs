@@ -1,26 +1,40 @@
 using Godot;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class MouseInputToDistributionSystem : MatcherEntitySystem
+public class MouseInputToDistributionSystem : IEcsRunSystem
 {
     private readonly Map parent;
-    private readonly MouseInputDistributionComponent lastMouse = new MouseInputDistributionComponent();
 
-    public MouseInputToDistributionSystem(Map parent) : base(new Matcher().All<MouseInputDistributionComponent>())
+    public System.Numerics.Vector2 MousePosition;
+    public int MouseButtons;
+
+
+    public MouseInputToDistributionSystem(Map parent)
     {
         this.parent = parent;
         this.parent.UnhandledInput += UnhandledInput;
     }
 
-    protected override void DoAction(Entity entity, float delta)
+    public void Run(IEcsSystems systems)
     {
-        var currentMouse = entity.GetComponent<MouseInputDistributionComponent>();
-        var buttonsChanged = currentMouse.MouseButtons ^ lastMouse.MouseButtons;
+        var world = systems.GetWorld();
 
-        currentMouse.MousePosition = lastMouse.MousePosition;
-        currentMouse.MouseButtons = lastMouse.MouseButtons;
-        currentMouse.JustPressedButtins = buttonsChanged & lastMouse.MouseButtons;
-        currentMouse.JustReleasedButtins = buttonsChanged & (~lastMouse.MouseButtons);
+        var filter = world.Filter()
+            .Inc<MouseInputDistributionComponent>()
+            .End();
+
+        var distributions = world.GetPool<MouseInputDistributionComponent>();
+
+        foreach (var entity in filter)
+        {
+            ref var currentMouse = ref distributions.GetAdd(entity);
+            var buttonsChanged = currentMouse.MouseButtons ^ this.MouseButtons;
+
+            currentMouse.MousePosition = this.MousePosition;
+            currentMouse.MouseButtons = this.MouseButtons;
+            currentMouse.JustPressedButtins = buttonsChanged & this.MouseButtons;
+            currentMouse.JustReleasedButtins = buttonsChanged & (~this.MouseButtons);
+        }
     }
 
     public void UnhandledInput(InputEvent @event)
@@ -28,8 +42,8 @@ public class MouseInputToDistributionSystem : MatcherEntitySystem
         if (@event is InputEventMouse mouse)
         {
             var pos = parent.GetLocalMousePosition();
-            this.lastMouse.MousePosition = new System.Numerics.Vector2(pos.x, pos.y);
-            this.lastMouse.MouseButtons = mouse.ButtonMask;
+            this.MousePosition = new System.Numerics.Vector2(pos.x, pos.y);
+            this.MouseButtons = mouse.ButtonMask;
         }
     }
 }

@@ -1,20 +1,29 @@
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class FatigueProcessUpdateSystem : MatcherEntitySystem
+public class FatigueProcessUpdateSystem : IEcsRunSystem
 {
-    public FatigueProcessUpdateSystem() : base(new Matcher()
-        .All<FatigueComponent>()
-        .Exclude<FatigueSleepComponent>())
+    public void Run(IEcsSystems systems)
     {
-    }
+        var delta = systems.GetShared<World.SharedData>().delta;
+        
+        var world = systems.GetWorld();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
+        var filter = world.Filter()
+            .Inc<FatigueComponent>()
+            .Exc<FatigueSleepComponent>()
+            .End();
 
-        var fatigue = entity.GetComponent<FatigueComponent>();
-        var isBuilding = entity.GetComponent<PersonDecisionBuildComponent>()?.SelectedConstruction != null;
+        var fatigues = world.GetPool<FatigueComponent>();
+        var decisionBuilds = world.GetPool<PersonDecisionBuildComponent>();
+        var holders = world.GetPool<AvailabilityHolderComponent>();
 
-        fatigue.CurrentFatigue += fatigue.FatigueSpeed * delta * (isBuilding ? 5 : 1);
+        foreach (var entity in filter)
+        {
+            ref var fatigue = ref fatigues.GetAdd(entity);
+
+            var isBuilding = decisionBuilds.Has(entity) && holders.Has(entity);
+
+            fatigue.CurrentFatigue += delta * (isBuilding ? fatigue.FatigueBuilderSpeed : fatigue.FatigueSpeed);
+        }
     }
 }

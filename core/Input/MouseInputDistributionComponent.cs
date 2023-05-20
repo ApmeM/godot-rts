@@ -1,7 +1,6 @@
 using System;
 using System.Numerics;
-using LocomotorECS;
-public class MouseInputDistributionComponent : Component
+public struct MouseInputDistributionComponent
 {
     public Vector2 MousePosition;
     public int MouseButtons;

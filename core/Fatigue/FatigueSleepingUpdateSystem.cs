@@ -1,63 +1,32 @@
-using System;
-using System.Linq.Struct;
-using System.Numerics;
-using LocomotorECS;
+using Leopotam.EcsLite;
 
-public class FatigueSleepingUpdateSystem : MatcherEntitySystem
+public class FatigueSleepingUpdateSystem : IEcsRunSystem
 {
-    private EntityLookup<int> restSources;
-
-    private readonly CommonLambdas.EntityData entityData;
-    private MultiHashSetWrapper<Entity> wrapper;
-    private RefLinqEnumerable<Entity, OrderBy<Entity, Where<Entity, MultiHashSetWrapperEnumerator<Entity>>, float>> query;
-
-    public FatigueSleepingUpdateSystem(EntityLookup<int> restSources) : base(new Matcher()
-        .All<FatigueSleepComponent>()
-        .All<FatigueComponent>()
-        .All<PositionComponent>()
-        .All<PlayerComponent>())
+    public void Run(IEcsSystems systems)
     {
-        this.restSources = restSources;
-        this.entityData = new CommonLambdas.EntityData();
-        this.wrapper = new MultiHashSetWrapper<Entity>();
-        this.query = this.wrapper
-            .Where(CommonLambdas.GetAvailabilityLambda(this.entityData))
-            .OrderBy(CommonLambdas.GetEntityDistanceLambda(this.entityData));
-    }
+        var delta = systems.GetShared<World.SharedData>().delta;
+        var world = systems.GetWorld();
 
-    protected override void DoAction(Entity entity, float delta)
-    {
-        base.DoAction(entity, delta);
+        var filter = world.Filter()
+            .Inc<FatigueSleepComponent>()
+            .Inc<FatigueComponent>()
+            .End();
 
-        var fatigue = entity.GetComponent<FatigueComponent>();
-        var position = entity.GetComponent<PositionComponent>();
-        var player = entity.GetComponent<PlayerComponent>();
+        var fatigues = world.GetPool<FatigueComponent>();
+        var sleeps = world.GetPool<FatigueSleepComponent>();
 
-        this.entityData.Entity = entity;
-
-        wrapper.Data = restSources[player.PlayerId].Entities;
-        var closestSource = query.FirstOrDefault();
-        var closestRest = closestSource?.GetComponent<PositionComponent>()?.Position ?? Vector2Ext.Inf;
-
-        if (position.Position != closestRest || closestRest == Vector2Ext.Inf)
+        foreach (var entity in filter)
         {
-            fatigue.CurrentFatigue -= fatigue.DefaultRest * delta;
-            entity.GetComponent<PersonDecisionSleepComponent>().SelectedHouse?.GetComponent<AvailabilityComponent>().CurrentUsers.Remove(entity);
-            entity.GetComponent<PersonDecisionSleepComponent>().SelectedHouse = null;
-        }
-        else
-        {
-            var rest = closestSource.GetComponent<RestComponent>();
-            fatigue.CurrentFatigue -= rest.Regeneration * delta;
-            closestSource?.GetComponent<AvailabilityComponent>()?.CurrentUsers.Add(entity);
-        }
+            ref var fatigue = ref fatigues.Get(entity);
+            var sleep = sleeps.Get(entity);
 
-        if (fatigue.CurrentFatigue <= 0)
-        {
-            closestSource?.GetComponent<AvailabilityComponent>()?.CurrentUsers.Remove(entity);
-            fatigue.CurrentFatigue = 0;
-            entity.GetComponent<FatigueSleepComponent>().Disable();
-            return;
+            fatigue.CurrentFatigue -= sleep.RestSpeed * delta;
+
+            if (fatigue.CurrentFatigue <= 0)
+            {
+                fatigue.CurrentFatigue = 0;
+                sleeps.Del(entity);
+            }
         }
     }
 }
