@@ -22,7 +22,7 @@ public class Program
 
         var persons = w.world.Filter().Inc<PersonComponent>().End();
 
-        for (var i = 0; i < 1000; i++)
+        for (var i = 0; i < 3000; i++)
         {
             var notification = notificationComponent.GetAdd(notificationEntity);
             w.Process(0.1f);

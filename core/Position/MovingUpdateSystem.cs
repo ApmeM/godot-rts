@@ -38,7 +38,6 @@ public class MovingUpdateSystem : IEcsRunSystem
             if (moving.Path.Count == 0 || moving.PathTarget != moving.Path[moving.Path.Count - 1])
             {
                 moving.Path.Clear();
-
                 var newPath = this.pathFinder.FindPath(position.Position, moving.PathTarget);
                 if (newPath == null)
                 {

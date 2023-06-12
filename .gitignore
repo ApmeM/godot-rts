@@ -8,3 +8,4 @@ build/
 .vscode/
 *.user
 .idea/
+BenchmarkDotNet.Artifacts/

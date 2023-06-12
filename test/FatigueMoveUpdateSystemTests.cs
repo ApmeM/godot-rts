@@ -196,7 +196,7 @@
 
             var holderEntity = world.NewEntity();
             positions.Add(holderEntity).Position = new System.Numerics.Vector2(10, 10);
-            decisionSleeps.Add(holderEntity);
+            sleeps.Add(holderEntity);
             holders.Add(holderEntity).OccupiedEntity = rest;
             fatigues.Add(holderEntity);
             movings.Add(holderEntity);

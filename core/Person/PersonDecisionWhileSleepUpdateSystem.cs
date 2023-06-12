@@ -1,13 +1,11 @@
-using System;
-using System.Numerics;
 using Leopotam.EcsLite;
 
-public class PersonDecisioWhileSleepUpdateSystem : IEcsRunSystem
+public class PersonDecisionWhileSleepUpdateSystem : IEcsRunSystem
 {
-    private readonly Random r = new Random();
-
     public void Run(IEcsSystems systems)
     {
+        var r = systems.GetShared<World.SharedData>().random;
+
         var world = systems.GetWorld();
 
         var builderEntities = world.Filter().Inc<PersonDecisionBuildComponent>().Inc<FatigueSleepComponent>().End();

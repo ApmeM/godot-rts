@@ -9,6 +9,7 @@ public class FatigueMoveUpdateSystem : IEcsRunSystem
         var restEntities = world.Filter()
             .Inc<RestComponent>()
             .Inc<PositionComponent>()
+            .Inc<PlayerComponent>()
             // Might have Availability
             .End();
 

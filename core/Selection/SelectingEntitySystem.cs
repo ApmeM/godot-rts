@@ -2,15 +2,11 @@ using Leopotam.EcsLite;
 
 public class SelectingEntitySystem : IEcsRunSystem
 {
-    private readonly float distance;
-
-    public SelectingEntitySystem(float distance)
-    {
-        this.distance = distance;
-    }
-
     public void Run(IEcsSystems systems)
     {
+        var data = systems.GetShared<World.SharedData>();
+        var distance = (data.stepX + data.stepY) / 2;
+
         var world = systems.GetWorld();
 
         var filter = world.Filter()
@@ -31,7 +27,7 @@ public class SelectingEntitySystem : IEcsRunSystem
 
             if ((mouse.JustPressedButtins & (int)MouseInputComponent.ButtonList.MaskLeft) == (int)MouseInputComponent.ButtonList.Left)
             {
-                if ((mouse.MousePosition - position.Position).LengthSquared() < this.distance * this.distance / 2)
+                if ((mouse.MousePosition - position.Position).LengthSquared() < distance * distance / 2)
                 {
                     selecteds.GetAdd(entity);
                 }

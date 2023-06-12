@@ -4,10 +4,12 @@ using Leopotam.EcsLite;
 
 public class WalkingUpdateSystem : IEcsRunSystem
 {
-    private readonly Random r = new Random();
-
     public void Run(IEcsSystems systems)
     {
+        var r = systems.GetShared<World.SharedData>().random;
+     
+        var data = systems.GetShared<World.SharedData>();
+
         var world = systems.GetWorld();
 
         var filter = world.Filter()
@@ -30,7 +32,7 @@ public class WalkingUpdateSystem : IEcsRunSystem
                 continue;
             }
 
-            moving.PathTarget = position.Position + new Vector2(r.Next(250) - 125, r.Next(250) - 125);
+            moving.PathTarget = position.Position + new Vector2(r.Next((int)data.stepX * 10) - data.stepX * 5, r.Next((int)data.stepY) * 10 - data.stepY * 5);
         }
     }
 }

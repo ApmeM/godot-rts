@@ -100,7 +100,6 @@ public class PersonDecisionUpdateSystem : IEcsRunSystem
         CheckDecision<T, PersonDecisionWalkComponent>(world, entity);
     }
 
-
     private void CheckDecision<T1, T2>(EcsWorld world, int entity) where T2 : struct where T1 : struct
     {
         if (typeof(T1) != typeof(T2))

@@ -19,9 +19,11 @@
         public void Setup()
         {
             sharedData = new World.SharedData();
+            sharedData.stepX = 1;
+            sharedData.stepY = 1;
             world = new EcsWorld();
             systems = new EcsSystems(world, sharedData);
-            systems.Add(new SelectingEntitySystem(1));
+            systems.Add(new SelectingEntitySystem());
             systems.Init();
 
             selectables = world.GetPool<SelectableComponent>();

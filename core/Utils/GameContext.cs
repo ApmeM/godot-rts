@@ -110,6 +110,11 @@ public class GameContext : IMazeBuilder, IPathFinder
         var fromMap = this.worldToMap(from);
         var toMap = this.worldToMap(to);
 
+        if (this.Map.Map.ContainsKey(toMap))
+        {
+            return null;
+        }
+
         var pathMap = this.Pathfinder.Search(fromMap, toMap);
 
         if (pathMap == null)

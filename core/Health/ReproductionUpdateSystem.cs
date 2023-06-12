@@ -4,12 +4,12 @@ using Leopotam.EcsLite;
 
 public class ReproductionUpdateSystem : IEcsRunSystem
 {
-    private readonly Random r = new Random();
-
     private readonly Dictionary<int, int> data = new Dictionary<int, int>();
 
     public void Run(IEcsSystems systems)
     {
+        var r = systems.GetShared<World.SharedData>().random;
+
         var world = systems.GetWorld();
 
         var filter = world.Filter()

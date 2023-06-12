@@ -31,7 +31,7 @@ public partial class Main
 
     public override void _Process(float delta)
     {
-        delta = 0.1f; // To act in a same way as in console application.
+        // delta = 0.1f; // To act in a same way as in console application.
         totalTime += delta;
         base._Process(delta);
 
