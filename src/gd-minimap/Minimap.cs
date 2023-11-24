@@ -61,12 +61,13 @@ public partial class Minimap
             }
 
             var minimapElement = element as IMinimapElement;
-            var minimapSprite = element as Sprite;
+            var minimapSprite = (element as Sprite) ?? (minimapElement?.Sprite);
 
             if (!knownMarkers.ContainsKey(element))
             {
                 var newEnemyMarker = (Sprite)this.marker.Duplicate();
-                newEnemyMarker.Texture = minimapElement?.Texture ?? minimapSprite.Texture;
+                newEnemyMarker.Texture = minimapSprite.Texture;
+                
                 this.ySort.AddChild(newEnemyMarker);
                 newEnemyMarker.Show();
                 newKnownMarkers[element] = newEnemyMarker;
@@ -82,12 +83,12 @@ public partial class Minimap
             var isWithinMap = field.GetRect().HasPoint(markerPosition);
 
             var knownMarker = newKnownMarkers[element];
-            knownMarker.Rotation = element.Rotation;
+            knownMarker.Rotation = element.Rotation + minimapSprite.Rotation;
             knownMarker.Position = new Vector2(
                 x: Mathf.Clamp(markerPosition.x, 0, field.RectSize.x),
                 y: Mathf.Clamp(markerPosition.y, 0, field.RectSize.y)
             );
-            knownMarker.Scale = (isWithinMap) ? Vector2.One : Vector2.One * 0.75f;
+            knownMarker.Scale = (isWithinMap) ? minimapSprite.Scale : minimapSprite.Scale * 0.75f;
             knownMarker.Visible = isWithinMap || (minimapElement?.VisibleOnBorder ?? true);
         }
 

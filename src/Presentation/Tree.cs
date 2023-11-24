@@ -15,7 +15,7 @@ public partial class Tree : EntityTypeNode2DRenderSystem.IEntityNode2D, IMinimap
 
     public bool VisibleOnBorder => false;
 
-    public Texture Texture => this.sprite.Texture;
+    public Sprite Sprite => this.sprite;
 
     public override void _Ready()
     {

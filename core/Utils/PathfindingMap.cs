@@ -86,4 +86,8 @@ public class PathfindingMap : IAstarGraph<Vector2>
 
         return sb.ToString();
     }
+
+    public void BeforeSearch(Vector2 nodeStart, HashSet<Vector2> nodeEnd)
+    {
+    }
 }

@@ -16,7 +16,7 @@ public partial class Person : EntityTypeNode2DRenderSystem.IEntityNode2D, IMinim
 
     public bool VisibleOnBorder => false;
 
-    public Texture Texture => this.sprite.Texture;
+    public Sprite Sprite => this.sprite;
 
     public override void _Ready()
     {

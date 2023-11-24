@@ -162,7 +162,6 @@ size_flags_vertical = 3
 margin_right = 109.0
 margin_bottom = 91.0
 rect_min_size = Vector2( 109, 0 )
-CenterNodePath = NodePath("")
 WorldRectSize = Vector2( 500, 500 )
 
 [node name="SelectedDetails" parent="HUD/Panel/VBoxContainer/HBoxContainer" instance=ExtResource( 11 )]

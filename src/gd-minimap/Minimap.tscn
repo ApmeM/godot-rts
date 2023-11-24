@@ -6,6 +6,7 @@
 margin_right = 150.0
 margin_bottom = 150.0
 script = ExtResource( 3 )
+CenterNodePath = NodePath("")
 
 [node name="Field" type="Control" parent="."]
 margin_right = 150.0
