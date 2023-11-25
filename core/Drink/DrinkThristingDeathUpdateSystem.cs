@@ -11,15 +11,10 @@ public class DrinkThristingDeathUpdateSystem : IEcsRunSystem
             .Exc<DeadComponent>()
             .End();
 
-        var notificationEntities = world.Filter()
-            .Inc<NotificationComponent>()
-            .End();
-
         var thristings = world.GetPool<DrinkThristingComponent>();
-        var notifications = world.GetPool<NotificationComponent>();
         var deads = world.GetPool<DeadComponent>();
 
-        var notified = false;
+        var isDead = false;
 
         foreach (var thristingEntity in thristingEntities)
         {
@@ -29,17 +24,12 @@ public class DrinkThristingDeathUpdateSystem : IEcsRunSystem
             {
                 continue;
             }
-            
+            isDead = true;
             deads.Add(thristingEntity);
+        }
 
-            if (!notified)
-            {
-                notified = true;
-                foreach (var notificationEntity in notificationEntities)
-                {
-                    notifications.GetAdd(notificationEntity).ThristingDead = true;
-                }
-            }
+        if(isDead){
+            NotificationUtils.Notify(systems, Notifications.ThristingDead);
         }
     }
 }

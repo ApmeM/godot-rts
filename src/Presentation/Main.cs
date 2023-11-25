@@ -48,15 +48,7 @@ public partial class Main
         world.Process(delta);
         var count = persons.Build().Count();
 
-        this.notification.Text = $"Step {((int)totalTime).ToString()}, population = {count.ToString()}";
-
-        if (notification.SleepingOnTheGround)
-        {
-            this.floatingTextManager.ShowValue("Your people are sleeping on the ground. Build more houses.");
-        }
-        if (notification.ThristingDead)
-        {
-            this.floatingTextManager.ShowValue("Your people are thristing and dying. Build more wells.");
-        }
+        this.notification.Text = $"Step {(int)totalTime}, population = {count}";
+        this.floatingTextManager.ShowValue(notification.Notification.ToReadableText());
     }
 }

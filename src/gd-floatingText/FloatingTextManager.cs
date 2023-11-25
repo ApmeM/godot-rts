@@ -25,6 +25,11 @@ public partial class FloatingTextManager
 
     public void ShowValue(string value, Color? color = null, bool highlite = false)
     {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
         var fct = (FloatingText)FloatingTextScene.Instance();
         AddChild(fct);
         fct.ShowValue(value, Direction, Duration, Spread, color, highlite);

@@ -71,7 +71,7 @@
 
             systems.Run();
 
-            Assert.AreEqual(true, notifications.Get(notificationEntity).SleepingOnTheGround);
+            Assert.AreEqual(true, notifications.Get(notificationEntity).Notification == Notifications.SleepingOnTheGround);
         }
 
         [Test]

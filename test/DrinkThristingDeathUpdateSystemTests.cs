@@ -52,7 +52,7 @@
 
             systems.Run();
 
-            Assert.AreEqual(true, notifications.Get(notificationEntity).ThristingDead);
+            Assert.AreEqual(true, notifications.Get(notificationEntity).Notification == Notifications.ThristingDead);
         }
 
         [Test]

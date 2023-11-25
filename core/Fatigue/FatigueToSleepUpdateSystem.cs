@@ -12,15 +12,10 @@ public class FatigueToSleepUpdateSystem : IEcsRunSystem
             .Exc<DeadComponent>()
             .End();
 
-        var notificationEntities = world.Filter()
-            .Inc<NotificationComponent>()
-            .End();
-
         var fatigues = world.GetPool<FatigueComponent>();
         var fatigueSleepigs = world.GetPool<FatigueSleepComponent>();
-        var notifications = world.GetPool<NotificationComponent>();
 
-        var notified = false;
+        var isSleepOnGround = false;
 
         foreach (var entity in filter)
         {
@@ -30,16 +25,15 @@ public class FatigueToSleepUpdateSystem : IEcsRunSystem
                 continue;
             }
 
+            isSleepOnGround = true;
+
             fatigueSleepigs.Add(entity).RestSpeed = fatigues.Get(entity).DefaultRest;
             fatigueSleepigs.Get(entity).InHouse = false;
-            if (!notified)
-            {
-                notified = true;
-                foreach (var notificationEntity in notificationEntities)
-                {
-                    notifications.GetAdd(notificationEntity).SleepingOnTheGround = true;
-                }
-            }
+        }
+        
+        if (isSleepOnGround)
+        {
+            NotificationUtils.Notify(systems, Notifications.SleepingOnTheGround);
         }
     }
 }

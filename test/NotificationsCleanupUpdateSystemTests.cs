@@ -27,16 +27,13 @@
         public void EntityDead_EntityRemoved()
         {
             var testEntity = world.NewEntity();
-            notifications.Add(testEntity).SleepingOnTheGround = true;
-            notifications.Get(testEntity).ThristingDead = true;
+            notifications.Add(testEntity).Notification = Notifications.SleepingOnTheGround;
 
-            Assert.AreEqual(true, notifications.Get(testEntity).SleepingOnTheGround);
-            Assert.AreEqual(true, notifications.Get(testEntity).ThristingDead);
+            Assert.AreEqual(Notifications.SleepingOnTheGround, notifications.Get(testEntity).Notification);
 
             systems.Run();
 
-            Assert.AreEqual(false, notifications.Get(testEntity).SleepingOnTheGround);
-            Assert.AreEqual(false, notifications.Get(testEntity).ThristingDead);
+            Assert.AreEqual(Notifications.None, notifications.Get(testEntity).Notification);
         }
     }
 }

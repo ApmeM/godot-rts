@@ -10,7 +10,10 @@ public class BuildFinishUpdateSystem : IEcsRunSystem
             .Inc<ConstructionComponent>()
             .End();
 
+
         var constructions = world.GetPool<ConstructionComponent>();
+
+        var constructionComplete = false;
 
         foreach (var entity in filter)
         {
@@ -19,11 +22,18 @@ public class BuildFinishUpdateSystem : IEcsRunSystem
             {
                 continue;
             }
-            
+
+            constructionComplete = true;
+
             // TODO: add separate systems to handle construction done.
             construction.ConstructionDone?.Invoke(entity);
             construction.ConstructionDone = null;
             constructions.Del(entity);
+        }
+
+        if (constructionComplete)
+        {
+            NotificationUtils.Notify(systems, Notifications.ConstructionComplete);
         }
     }
 }

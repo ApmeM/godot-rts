@@ -24,11 +24,11 @@ public class World
         this.input_esl.Add(new MouseInputDistributeSystem());
 
         this.esl = new EcsSystems(this.world, this.sharedData);
+        this.esl.Add(new NotificationsCleanupUpdateSystem());
         this.esl.Add(new RemoveDeadUpdateSystem());
         this.esl.Add(new BuildMoveUpdateSystem());
         this.esl.Add(new BuildProcessUpdateSystem());
         this.esl.Add(new BuildFinishUpdateSystem());
-        this.esl.Add(new NotificationsCleanupUpdateSystem());
         this.esl.Add(new DrinkableRegenerationUpdateSystem());
         this.esl.Add(new DrinkMoveUpdateSystem());
         this.esl.Add(new DrinkProcessUpdateSystem());

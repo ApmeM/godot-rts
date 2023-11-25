@@ -13,8 +13,7 @@ public class NotificationsCleanupUpdateSystem : IEcsRunSystem
         var notifications = world.GetPool<NotificationComponent>();
         foreach (var entity in filter)
         {
-            notifications.GetAdd(entity).ThristingDead = false;
-            notifications.GetAdd(entity).SleepingOnTheGround = false;
+            notifications.GetAdd(entity).Notification = Notifications.None;
         }
     }
 }
